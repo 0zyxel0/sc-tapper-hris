@@ -1,0 +1,61 @@
+{
+  "kind": "collectionType",
+  "collectionName": "attendance_sessions",
+  "info": {
+    "singularName": "attendance-session",
+    "pluralName": "attendance-sessions",
+    "displayName": "Attendance Session",
+    "description": "Operating period for attendance scans"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "sessionDate": {
+      "type": "date"
+    },
+    "startTime": {
+      "type": "datetime"
+    },
+    "endTime": {
+      "type": "datetime"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "Open",
+        "Closed"
+      ],
+      "default": "Open"
+    },
+    "location": {
+      "type": "string"
+    },
+    "deviceId": {
+      "type": "string"
+    },
+    "openedBy": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "closedBy": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "notes": {
+      "type": "text"
+    },
+    "attendanceEvents": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::attendance-event.attendance-event",
+      "mappedBy": "session"
+    }
+  }
+}

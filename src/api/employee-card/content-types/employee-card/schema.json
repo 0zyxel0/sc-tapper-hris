@@ -1,0 +1,68 @@
+{
+  "kind": "collectionType",
+  "collectionName": "employee_cards",
+  "info": {
+    "singularName": "employee-card",
+    "pluralName": "employee-cards",
+    "displayName": "Employee Card",
+    "description": "Physical ID cards or RFIDs assigned to employees"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "cardNumber": {
+      "type": "string"
+    },
+    "rfidUid": {
+      "type": "string"
+    },
+    "employee": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::employee.employee",
+      "inversedBy": "cards"
+    },
+    "cardType": {
+      "type": "enumeration",
+      "enum": [
+        "RFID",
+        "NFC",
+        "Barcode",
+        "Other"
+      ]
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "Active",
+        "Lost",
+        "Disabled",
+        "Expired",
+        "Replaced"
+      ],
+      "default": "Active"
+    },
+    "issuedAt": {
+      "type": "datetime"
+    },
+    "expiresAt": {
+      "type": "datetime"
+    },
+    "issuedBy": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "notes": {
+      "type": "text"
+    },
+    "attendanceEvents": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::attendance-event.attendance-event",
+      "mappedBy": "card"
+    }
+  }
+}

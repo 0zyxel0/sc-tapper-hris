@@ -1,0 +1,107 @@
+{
+  "kind": "collectionType",
+  "collectionName": "employees",
+  "info": {
+    "singularName": "employee",
+    "pluralName": "employees",
+    "displayName": "Employee",
+    "description": "HR/company employee record"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "employeeNumber": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "firstName": {
+      "type": "string",
+      "required": true
+    },
+    "middleName": {
+      "type": "string"
+    },
+    "lastName": {
+      "type": "string",
+      "required": true
+    },
+    "suffix": {
+      "type": "string"
+    },
+    "displayName": {
+      "type": "string"
+    },
+    "email": {
+      "type": "email"
+    },
+    "mobileNumber": {
+      "type": "string"
+    },
+    "birthDate": {
+      "type": "date"
+    },
+    "gender": {
+      "type": "enumeration",
+      "enum": [
+        "Male",
+        "Female",
+        "Other"
+      ]
+    },
+    "department": {
+      "type": "string"
+    },
+    "position": {
+      "type": "string"
+    },
+    "employmentStatus": {
+      "type": "enumeration",
+      "enum": [
+        "Active",
+        "Inactive",
+        "On Leave",
+        "Terminated"
+      ],
+      "required": true,
+      "default": "Active"
+    },
+    "dateHired": {
+      "type": "date"
+    },
+    "dateTerminated": {
+      "type": "date"
+    },
+    "address": {
+      "type": "text"
+    },
+    "emergencyContactName": {
+      "type": "string"
+    },
+    "emergencyContactNumber": {
+      "type": "string"
+    },
+    "profilePicture": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "cards": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::employee-card.employee-card",
+      "mappedBy": "employee"
+    },
+    "attendanceEvents": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::attendance-event.attendance-event",
+      "mappedBy": "employee"
+    }
+  }
+}

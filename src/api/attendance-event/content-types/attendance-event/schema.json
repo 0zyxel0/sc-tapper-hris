@@ -1,0 +1,102 @@
+{
+  "kind": "collectionType",
+  "collectionName": "attendance_events",
+  "info": {
+    "singularName": "attendance-event",
+    "pluralName": "attendance-events",
+    "displayName": "Attendance Event",
+    "description": "Immutable attendance log entry"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "eventId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "employee": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::employee.employee",
+      "inversedBy": "attendanceEvents"
+    },
+    "card": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::employee-card.employee-card",
+      "inversedBy": "attendanceEvents"
+    },
+    "session": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::attendance-session.attendance-session",
+      "inversedBy": "attendanceEvents"
+    },
+    "direction": {
+      "type": "enumeration",
+      "enum": [
+        "IN",
+        "OUT"
+      ]
+    },
+    "eventTime": {
+      "type": "datetime",
+      "required": true
+    },
+    "source": {
+      "type": "enumeration",
+      "enum": [
+        "RFID",
+        "Manual",
+        "Import",
+        "Sync"
+      ],
+      "required": true
+    },
+    "deviceId": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "verificationMethod": {
+      "type": "enumeration",
+      "enum": [
+        "RFID",
+        "Manual"
+      ]
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "Valid",
+        "Rejected",
+        "Corrected"
+      ],
+      "default": "Valid"
+    },
+    "notes": {
+      "type": "text"
+    },
+    "syncStatus": {
+      "type": "enumeration",
+      "enum": [
+        "Local",
+        "Synced",
+        "Conflict"
+      ],
+      "default": "Local"
+    },
+    "originalEventId": {
+      "type": "string"
+    },
+    "createdBy": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}
