@@ -9,11 +9,11 @@
 - Phase 4 Employee & Card Management custom logic implemented and exposed.
 - Phase 5 Reports Engine logic (Daily, Monthly, Employee) implemented and exposed.
 - Phase 6 Import Engine logic (Background processing, photo parsing, JSON payload) implemented and exposed.
+- Phase 7 Offline Sync (Push/Pull mechanisms for remote local-SQLite kiosks) implemented and exposed.
 
 ## What's Left to Build
 - Set up authentication and authorization policies (so Nuxt can hit the endpoints).
 - Phase 3: Nuxt Guardhouse UI.
-- Phase 7: Offline sync.
 - Customize the admin panel for better UX if necessary.
 
 ## Current Status
@@ -23,6 +23,7 @@
 - Completed Phase 4 (Employee Management).
 - Completed Phase 5 (Reports).
 - Completed Phase 6 (Import).
+- Completed Phase 7 (Offline Sync).
 
 ## Known Issues
 - None at this time.
