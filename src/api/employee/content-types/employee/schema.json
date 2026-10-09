@@ -97,6 +97,12 @@
       "target": "api::employee-card.employee-card",
       "mappedBy": "employee"
     },
+    "externalId": {
+      "type": "string"
+    },
+    "externalSource": {
+      "type": "string"
+    },
     "attendanceEvents": {
       "type": "relation",
       "relation": "oneToMany",

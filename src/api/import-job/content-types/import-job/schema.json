@@ -1,0 +1,43 @@
+{
+  "kind": "collectionType",
+  "collectionName": "import_jobs",
+  "info": {
+    "singularName": "import-job",
+    "pluralName": "import-jobs",
+    "displayName": "Import Job",
+    "description": "Tracks background data import processes"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "status": {
+      "type": "enumeration",
+      "enum": ["Pending", "Processing", "Completed", "Failed"],
+      "default": "Pending"
+    },
+    "totalRecords": {
+      "type": "integer",
+      "default": 0
+    },
+    "processedRecords": {
+      "type": "integer",
+      "default": 0
+    },
+    "successfulRecords": {
+      "type": "integer",
+      "default": 0
+    },
+    "failedRecords": {
+      "type": "integer",
+      "default": 0
+    },
+    "errors": {
+      "type": "json"
+    },
+    "completedAt": {
+      "type": "datetime"
+    }
+  }
+}
