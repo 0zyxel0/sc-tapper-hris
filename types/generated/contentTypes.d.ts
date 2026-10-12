@@ -635,6 +635,8 @@ export interface ApiEmployeeEmployee extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'Active'>;
+    externalId: Schema.Attribute.String;
+    externalSource: Schema.Attribute.String;
     firstName: Schema.Attribute.String & Schema.Attribute.Required;
     gender: Schema.Attribute.Enumeration<['Male', 'Female', 'Other']>;
     lastName: Schema.Attribute.String & Schema.Attribute.Required;
@@ -650,6 +652,44 @@ export interface ApiEmployeeEmployee extends Struct.CollectionTypeSchema {
     profilePicture: Schema.Attribute.Media<'images'>;
     publishedAt: Schema.Attribute.DateTime;
     suffix: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiImportJobImportJob extends Struct.CollectionTypeSchema {
+  collectionName: 'import_jobs';
+  info: {
+    description: 'Tracks background data import processes';
+    displayName: 'Import Job';
+    pluralName: 'import-jobs';
+    singularName: 'import-job';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    completedAt: Schema.Attribute.DateTime;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    errors: Schema.Attribute.JSON;
+    failedRecords: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::import-job.import-job'
+    > &
+      Schema.Attribute.Private;
+    processedRecords: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    publishedAt: Schema.Attribute.DateTime;
+    status: Schema.Attribute.Enumeration<
+      ['Pending', 'Processing', 'Completed', 'Failed']
+    > &
+      Schema.Attribute.DefaultTo<'Pending'>;
+    successfulRecords: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    totalRecords: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1171,6 +1211,7 @@ declare module '@strapi/strapi' {
       'api::attendance-session.attendance-session': ApiAttendanceSessionAttendanceSession;
       'api::employee-card.employee-card': ApiEmployeeCardEmployeeCard;
       'api::employee.employee': ApiEmployeeEmployee;
+      'api::import-job.import-job': ApiImportJobImportJob;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;
