@@ -9,6 +9,11 @@
 - Ready to proceed with frontend implementation.
 
 ## Recent Changes
+- Resolved login and session initialization issues in `sc-tapper-hris` and `sc-tapper-hris-web`:
+  - Fixed an issue where the Nuxt server-side Strapi helper (`useServerStrapi` in `server/utils/strapi.ts`) automatically attached the client's existing (expired) `auth_token` cookie as an `Authorization` header when forwarding requests to the Strapi authentication endpoint (`/api/auth/local`). This caused Strapi to reject the login attempt with `401 Missing or invalid credentials` before even checking credentials.
+  - Added an exclusion rule for auth routes in `useServerStrapi` (`endpoint.startsWith('/api/auth/')`) so client bearer tokens are never forwarded to authentication endpoints.
+  - Configured Strapi `users-permissions` with `jwtManagement: 'legacy-support'` and `expiresIn: '30d'` so issued tokens remain valid for 30 days without premature expiration.
+  - Verified full login, session check, and session opening workflow end-to-end.
 - Created `specs/test-data-setup.md` outlining the test data seeding and resetting workflows.
 - Strapi project successfully bootstrapped.
 - Memory Bank initialized.
