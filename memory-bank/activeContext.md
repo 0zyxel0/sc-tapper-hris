@@ -9,6 +9,7 @@
 - Ready to proceed with frontend implementation.
 
 ## Recent Changes
+- Created `specs/test-data-setup.md` outlining the test data seeding and resetting workflows.
 - Strapi project successfully bootstrapped.
 - Memory Bank initialized.
 

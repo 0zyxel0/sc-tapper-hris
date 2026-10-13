@@ -2,6 +2,7 @@
 
 ## What Works
 - Project scaffolding completed.
+- Dockerfile (multi-stage: development & production) and docker-compose.yml with PostgreSQL 16 container added and verified.
 - Basic Strapi v5 configuration with PostgreSQL setup.
 - Core HRIS Phase 1 Content Types implemented (`employee`, `employee-card`, `attendance-session`, `attendance-event`).
 - Phase 2 Attendance Engine logic implemented (IN/OUT logic, duplicate scan prevention).
@@ -10,6 +11,7 @@
 - Phase 5 Reports Engine logic (Daily, Monthly, Employee) implemented and exposed.
 - Phase 6 Import Engine logic (Background processing, photo parsing, JSON payload) implemented and exposed.
 - Phase 7 Offline Sync (Push/Pull mechanisms for remote local-SQLite kiosks) implemented and exposed.
+- Test data seeding API and setup documentation (`specs/test-data-setup.md`) established.
 
 ## What's Left to Build
 - Set up authentication and authorization policies (so Nuxt can hit the endpoints).

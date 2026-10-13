@@ -1,0 +1,64 @@
+services:
+  strapi:
+    container_name: sc-tapper-strapi
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: ${DOCKER_TARGET:-development}
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      HOST: 0.0.0.0
+      PORT: 1337
+      DATABASE_CLIENT: postgres
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${DATABASE_NAME:-hrisdb}
+      DATABASE_USERNAME: ${DATABASE_USERNAME:-postgres}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+      DATABASE_SSL: ${DATABASE_SSL:-false}
+    volumes:
+      - ./config:/opt/app/config
+      - ./src:/opt/app/src
+      - ./public/uploads:/opt/app/public/uploads
+      - ./types:/opt/app/types
+    ports:
+      - "${STRAPI_PORT:-1337}:1337"
+    networks:
+      - hris-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    container_name: sc-tapper-postgres
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+      POSTGRES_DB: ${DATABASE_NAME:-hrisdb}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      # Defaults to 5433 on the host to prevent conflicts if port 5432 is already bound locally.
+      # Inside Docker, Strapi connects directly to postgres:5432.
+      - "${DATABASE_HOST_PORT:-5433}:5432"
+    networks:
+      - hris-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    name: sc-tapper-postgres-data
+
+networks:
+  hris-network:
+    name: sc-tapper-network
+    driver: bridge
