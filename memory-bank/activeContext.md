@@ -9,6 +9,11 @@
 - Ready to proceed with frontend implementation.
 
 ## Recent Changes
+- Unified Student & Employee Profile Support in `api::employee.employee`:
+  - Added `personType` (`Student`, `Employee`, `Faculty`, `Staff`, `Visitor`) and optional student academic/guardian attributes (`courseOrProgram`, `yearOrGradeLevel`, `section`, `academicTerm`, `notifyGuardianSms`) to `api::employee.employee`.
+  - Updated `attendance.processScan` to return `personType`, `courseOrProgram`, `yearOrGradeLevel`, and `section` in scan responses.
+  - Updated `notification-log` service so student profiles with `notifyGuardianSms: true` prioritize `emergencyContactNumber` (parent/guardian) before falling back to `mobileNumber`.
+  - Updated `reports` (`GET /api/reports/daily` and `GET /api/reports/monthly`) to support `?personType=Student|Employee` filtering and include student academic metadata.
 - Implemented Assigned ID Suspension, Disablement, `current_status` Flagging & Overdue Payment SMS Reminders:
   - Extended `api::employee-card.employee-card` schema with `Suspended` in `status` enum, `current_status` (`Cleared`, `Payment_Overdue`, `Payment_Pending`, `Flagged`, `Under_Review`), `statusReason`, `paymentDueDate`, `flaggedAt`, `suspendedAt`, and `lastReminderSentAt`.
   - Extended `api::allowed-rfid.allowed-rfid` schema to include `Suspended` status and automatic status sync when cards are suspended, disabled, or reactivated.

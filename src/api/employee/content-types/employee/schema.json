@@ -17,6 +17,17 @@
       "required": true,
       "unique": true
     },
+    "personType": {
+      "type": "enumeration",
+      "enum": [
+        "Student",
+        "Employee",
+        "Faculty",
+        "Staff",
+        "Visitor"
+      ],
+      "default": "Employee"
+    },
     "firstName": {
       "type": "string",
       "required": true
@@ -56,6 +67,22 @@
     },
     "position": {
       "type": "string"
+    },
+    "courseOrProgram": {
+      "type": "string"
+    },
+    "yearOrGradeLevel": {
+      "type": "string"
+    },
+    "section": {
+      "type": "string"
+    },
+    "academicTerm": {
+      "type": "string"
+    },
+    "notifyGuardianSms": {
+      "type": "boolean",
+      "default": true
     },
     "employmentStatus": {
       "type": "enumeration",

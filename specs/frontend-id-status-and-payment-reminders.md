@@ -33,6 +33,18 @@ When an RFID card is scanned via `POST /api/attendance/scan`, the Kiosk UI handl
 
 ## 2. Admin Profile & ID Management (`pages/admin/profiles/[id].vue` & `/admin/cards`)
 
+### 2.0 Unified Student & Employee Profile Support (`personType`)
+Because `api::employee.employee` is the unified cardholder profile model:
+- Provide a **Person Type Filter** (`All`, `Student`, `Employee`, `Faculty`, `Staff`) on `/admin/profiles` and `/admin/reports` (`?personType=Student`).
+- When creating or editing a profile with `personType === 'Student'`, display the academic fields:
+  - **Student Number (`employeeNumber`)**
+  - **Course / Program (`courseOrProgram`)**
+  - **Year / Grade Level (`yearOrGradeLevel`)**
+  - **Section (`section`)**
+  - **Academic Term (`academicTerm`)**
+  - **Parent / Guardian Name (`emergencyContactName`) & Mobile (`emergencyContactNumber`)**
+  - **Notify Guardian via SMS (`notifyGuardianSms` toggle)**
+
 ### 2.1 Assigned ID Status & `current_status` Badges
 In the Employee/Student Profile drawer and Card Management table, render two distinct badges for each assigned ID:
 1. **Card Operational Status (`status`):**

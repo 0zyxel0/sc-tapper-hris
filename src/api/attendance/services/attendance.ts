@@ -96,7 +96,12 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
         employee: employee
           ? {
               employeeNumber: employee.employeeNumber,
+              personType: employee.personType || 'Employee',
               displayName: employee.displayName || `${employee.firstName} ${employee.lastName}`,
+              department: employee.department || null,
+              courseOrProgram: employee.courseOrProgram || null,
+              yearOrGradeLevel: employee.yearOrGradeLevel || null,
+              section: employee.section || null,
               profilePicture: employee.profilePicture,
             }
           : null,
@@ -206,7 +211,12 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       },
       employee: {
         employeeNumber: employee.employeeNumber,
+        personType: employee.personType || 'Employee',
         displayName: employee.displayName || `${employee.firstName} ${employee.lastName}`,
+        department: employee.department || null,
+        courseOrProgram: employee.courseOrProgram || null,
+        yearOrGradeLevel: employee.yearOrGradeLevel || null,
+        section: employee.section || null,
         profilePicture: employee.profilePicture
       },
       card: {

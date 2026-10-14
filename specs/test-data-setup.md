@@ -88,14 +88,14 @@ A successful request returns `200 OK` with JSON containing the seeded entities:
 
 The following records are injected into the database:
 
-### Employees
-| Employee Number | Full Name | Status | Purpose / Test Role |
-| :--- | :--- | :--- | :--- |
-| **`TEST-001`** | John Doe | `Active` | Standard valid employee for clock-in/clock-out testing |
-| **`TEST-002`** | Jane Smith | `Active` | Secondary valid employee for debounce / concurrent scan testing |
-| **`TEST-003`** | Bob Inactive | `Inactive` | Edge-case verification for inactive employee scanning |
-| **`TEST-004`** | Mark Overdue | `Active` | Active student with `current_status: Payment_Overdue` (`+639171234567`) |
-| **`TEST-005`** | Sarah Suspended | `Active` | Active student whose ID card is `Suspended` (`+639187654321`) |
+### Employees & Students (`api::employee.employee`)
+| ID Number (`employeeNumber`) | `personType` | Full Name | Status | Course / Section | Purpose / Test Role |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`TEST-001`** | `Employee` | John Doe | `Active` | — | Standard valid employee for clock-in/clock-out testing |
+| **`TEST-002`** | `Employee` | Jane Smith | `Active` | — | Secondary valid employee for debounce / concurrent scan testing |
+| **`TEST-003`** | `Employee` | Bob Inactive | `Inactive` | — | Edge-case verification for inactive employee scanning |
+| **`TEST-004`** | `Student` | Mark Overdue | `Active` | `BS Computer Science` / `BSCS-3A` | Active student with `current_status: Payment_Overdue` (`+639171234567`) |
+| **`TEST-005`** | `Student` | Sarah Suspended | `Active` | `BS Information Technology` / `BSIT-2B` | Active student whose ID card is `Suspended` (`+639187654321`) |
 
 ### RFID Cards
 | Card Number | RFID UID | Assigned Employee | Card Status | `current_status` | Purpose / Test Role |

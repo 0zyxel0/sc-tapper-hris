@@ -659,6 +659,7 @@ export interface ApiEmployeeEmployee extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    academicTerm: Schema.Attribute.String;
     address: Schema.Attribute.Text;
     attendanceEvents: Schema.Attribute.Relation<
       'oneToMany',
@@ -669,6 +670,7 @@ export interface ApiEmployeeEmployee extends Struct.CollectionTypeSchema {
       'oneToMany',
       'api::employee-card.employee-card'
     >;
+    courseOrProgram: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -700,13 +702,21 @@ export interface ApiEmployeeEmployee extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     middleName: Schema.Attribute.String;
     mobileNumber: Schema.Attribute.String;
+    notifyGuardianSms: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<true>;
+    personType: Schema.Attribute.Enumeration<
+      ['Student', 'Employee', 'Faculty', 'Staff', 'Visitor']
+    > &
+      Schema.Attribute.DefaultTo<'Employee'>;
     position: Schema.Attribute.String;
     profilePicture: Schema.Attribute.Media<'images'>;
     publishedAt: Schema.Attribute.DateTime;
+    section: Schema.Attribute.String;
     suffix: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    yearOrGradeLevel: Schema.Attribute.String;
   };
 }
 

@@ -74,8 +74,11 @@ export default factories.createCoreService('api::notification-log.notification-l
       }
     }
 
-    const recipientNumber =
-      employee?.mobileNumber?.trim() || employee?.emergencyContactNumber?.trim() || null;
+    const preferGuardian =
+      employee?.personType === 'Student' && employee?.notifyGuardianSms !== false;
+    const recipientNumber = preferGuardian
+      ? employee?.emergencyContactNumber?.trim() || employee?.mobileNumber?.trim() || null
+      : employee?.mobileNumber?.trim() || employee?.emergencyContactNumber?.trim() || null;
     const message = this.buildReminderMessage(employee, card, options.customMessage);
     const statusFlag = card.current_status || 'Payment_Overdue';
 

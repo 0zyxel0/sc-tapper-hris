@@ -26,6 +26,7 @@
   - Backend and Nuxt frontend specifications authored in `specs/feature-kiosk-customization.md` and `specs/frontend-kiosk-customization.md`.
 - Assigned ID Suspension, Disablement, `current_status` Flagging & Overdue Payment SMS Reminders completed:
   - Added `Suspended` card status and `current_status` (`Cleared`, `Payment_Overdue`, `Payment_Pending`, `Flagged`, `Under_Review`) on `employee-card`, synced with `allowed-rfid`.
+  - Extended `employee` schema with `personType` (`Student`, `Employee`, `Faculty`, `Staff`, `Visitor`) and academic/guardian fields (`courseOrProgram`, `yearOrGradeLevel`, `section`, `academicTerm`, `notifyGuardianSms`) plus `?personType=` report filtering.
   - Created `notification-log` content type and SMS reminder service with 24-hour cooldown and live/simulated SMS provider support.
   - Updated `POST /api/attendance/scan` to allow gate entry with a `warning` payload and SMS reminder when `current_status` is flagged (`Payment_Overdue`), while blocking `Suspended` (`CARD_SUSPENDED`) and `Disabled` (`CARD_DISABLED`) cards.
   - Authored `specs/feature-id-status-and-payment-reminders.md` and `specs/frontend-id-status-and-payment-reminders.md`.

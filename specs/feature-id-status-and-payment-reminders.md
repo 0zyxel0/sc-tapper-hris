@@ -13,6 +13,18 @@ Organizations and schools using `sc-tapper-hris` need fine-grained control over 
 
 ## 2. Data Model Changes
 
+### 2.0 Unified Profile Model (`api::employee.employee`) for Students & Personnel
+The `employees` collection (`api::employee.employee`) serves as the unified **Cardholder / Person Profile** table for both employees and students so all gate scanning, RFID allowlist, card issuance, offline sync, and reporting flows work seamlessly from a single profile table:
+| Attribute | Type | Enum / Default | Description |
+| :--- | :--- | :--- | :--- |
+| `personType` | `enumeration` | `Student`, `Employee` (default), `Faculty`, `Staff`, `Visitor` | Discriminates whether the profile belongs to a Student, Employee, Faculty, Staff, or Visitor. |
+| `employeeNumber` | `string` (unique) | *Required* | Unified ID number (Employee ID or Student ID / LRN). |
+| `courseOrProgram` | `string` | `null` | Student course, degree program, or senior high strand (e.g., `"BS Computer Science"`, `"STEM"`). |
+| `yearOrGradeLevel` | `string` | `null` | Student year or grade level (e.g., `"3rd Year"`, `"Grade 11"`). |
+| `section` | `string` | `null` | Class section (e.g., `"BSCS-3A"`). |
+| `academicTerm` | `string` | `null` | Current semester or school year (e.g., `"1st Semester SY 2026-2027"`). |
+| `notifyGuardianSms` | `boolean` | `true` | When `true` for a `Student`, SMS reminders prioritize `emergencyContactNumber` (Parent/Guardian) before falling back to `mobileNumber`. |
+
 ### 2.1 `api::employee-card.employee-card` (`employee_cards`)
 | Attribute | Type | Enum / Default | Description |
 | :--- | :--- | :--- | :--- |

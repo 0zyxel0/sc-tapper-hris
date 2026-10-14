@@ -171,11 +171,19 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     const emp4 = await strapi.documents('api::employee.employee').create({
       data: {
         employeeNumber: 'TEST-004',
+        personType: 'Student',
         firstName: 'Mark',
         lastName: 'Overdue',
+        courseOrProgram: 'BS Computer Science',
+        yearOrGradeLevel: '3rd Year',
+        section: 'BSCS-3A',
+        academicTerm: '1st Semester SY 2026-2027',
         mobileNumber: '+639171234567',
+        emergencyContactName: 'Maria Overdue',
+        emergencyContactNumber: '+639171234567',
+        notifyGuardianSms: true,
         employmentStatus: 'Active',
-      }
+      } as any
     }) as any;
 
     const card5 = await strapi.documents('api::employee-card.employee-card').create({
@@ -196,11 +204,19 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     const emp5 = await strapi.documents('api::employee.employee').create({
       data: {
         employeeNumber: 'TEST-005',
+        personType: 'Student',
         firstName: 'Sarah',
         lastName: 'Suspended',
+        courseOrProgram: 'BS Information Technology',
+        yearOrGradeLevel: '2nd Year',
+        section: 'BSIT-2B',
+        academicTerm: '1st Semester SY 2026-2027',
         mobileNumber: '+639187654321',
+        emergencyContactName: 'Roberto Suspended',
+        emergencyContactNumber: '+639187654321',
+        notifyGuardianSms: true,
         employmentStatus: 'Active',
-      }
+      } as any
     }) as any;
 
     const card6 = await strapi.documents('api::employee-card.employee-card').create({

@@ -32,7 +32,7 @@ function calculateTotalHours(events: any[]) {
 }
 
 export default ({ strapi }: { strapi: Core.Strapi }) => ({
-  async getDailyAttendance(dateString?: string) {
+  async getDailyAttendance(dateString?: string, personType?: string) {
     const targetDate = dateString ? new Date(dateString) : new Date();
     // Assuming YYYY-MM-DD format, set bounds
     const startOfDay = new Date(targetDate);
@@ -51,8 +51,13 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       sort: 'eventTime:asc'
     }) as any[];
 
+    const employeeFilters: any = { employmentStatus: 'Active' };
+    if (personType) {
+      employeeFilters.personType = personType;
+    }
+
     const employees = await strapi.documents('api::employee.employee').findMany({
-      filters: { employmentStatus: 'Active' }
+      filters: employeeFilters
     }) as any[];
 
     const report = employees.map(emp => {
@@ -63,7 +68,12 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
         employee: {
           id: emp.documentId,
           employeeNumber: emp.employeeNumber,
-          displayName: emp.displayName || `${emp.firstName} ${emp.lastName}`
+          personType: emp.personType || 'Employee',
+          displayName: emp.displayName || `${emp.firstName} ${emp.lastName}`,
+          department: emp.department || null,
+          courseOrProgram: emp.courseOrProgram || null,
+          yearOrGradeLevel: emp.yearOrGradeLevel || null,
+          section: emp.section || null
         },
         ...metrics
       };
@@ -72,7 +82,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     return report;
   },
 
-  async getMonthlyAttendance(year?: string, month?: string) {
+  async getMonthlyAttendance(year?: string, month?: string, personType?: string) {
     const now = new Date();
     const targetYear = year ? parseInt(year) : now.getFullYear();
     const targetMonth = month ? parseInt(month) - 1 : now.getMonth();
@@ -91,8 +101,13 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       sort: 'eventTime:asc'
     }) as any[];
 
+    const employeeFilters: any = { employmentStatus: 'Active' };
+    if (personType) {
+      employeeFilters.personType = personType;
+    }
+
     const employees = await strapi.documents('api::employee.employee').findMany({
-      filters: { employmentStatus: 'Active' }
+      filters: employeeFilters
     }) as any[];
 
     const report = employees.map(emp => {
@@ -126,7 +141,12 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
         employee: {
           id: emp.documentId,
           employeeNumber: emp.employeeNumber,
-          displayName: emp.displayName || `${emp.firstName} ${emp.lastName}`
+          personType: emp.personType || 'Employee',
+          displayName: emp.displayName || `${emp.firstName} ${emp.lastName}`,
+          department: emp.department || null,
+          courseOrProgram: emp.courseOrProgram || null,
+          yearOrGradeLevel: emp.yearOrGradeLevel || null,
+          section: emp.section || null
         },
         daysPresent,
         totalHours: Number(totalMonthlyHours.toFixed(2)),
