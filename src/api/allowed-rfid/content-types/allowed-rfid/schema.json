@@ -22,6 +22,7 @@
       "enum": [
         "Unassigned",
         "Assigned",
+        "Suspended",
         "Disabled"
       ],
       "default": "Unassigned"

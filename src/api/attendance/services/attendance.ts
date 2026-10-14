@@ -44,25 +44,91 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       return { success: false, code: 'SESSION_NOT_OPEN', message: 'No open session found' };
     }
 
-    // 2. Find RFID card
+    // 2. Find RFID card (across all statuses so we can differentiate Active, Suspended, Disabled)
     const cards = await strapi.documents('api::employee-card.employee-card').findMany({
-      filters: { rfidUid, status: 'Active' },
-      populate: { employee: { populate: ['profilePicture'] } }
+      filters: { rfidUid },
+      populate: { employee: { populate: ['profilePicture'] } },
+      sort: 'updatedAt:desc',
     }) as any[];
-    
+
     if (!cards || cards.length === 0) {
       return { success: false, code: 'UNKNOWN_CARD', message: 'Card not found or inactive' };
     }
-    const card = cards[0];
+    const card = cards.find((c: any) => c.status === 'Active') || cards[0];
 
     // 3. Check employee
     const employee = card.employee;
+
+    // 3a. Handle Suspended or Disabled/Lost cards explicitly
+    if (card.status === 'Suspended') {
+      let notification = null;
+      if (employee && card.current_status && card.current_status !== 'Cleared') {
+        try {
+          const notificationService = strapi.service('api::notification-log.notification-log' as any) as any;
+          if (notificationService) {
+            notification = await notificationService.sendPaymentReminder({
+              card,
+              employee,
+              triggerSource: 'Gate_Scan',
+            });
+          }
+        } catch (notifyErr: any) {
+          strapi.log.error(`Failed to trigger reminder for suspended card ${rfidUid}: ${notifyErr.message}`);
+        }
+      }
+
+      return {
+        success: false,
+        code: 'CARD_SUSPENDED',
+        message: card.statusReason
+          ? `ID Suspended: ${card.statusReason}`
+          : 'This ID card is currently suspended. Please proceed to the Administration/Accounting Office.',
+        card: {
+          documentId: card.documentId,
+          cardNumber: card.cardNumber,
+          rfidUid: card.rfidUid,
+          status: card.status,
+          current_status: card.current_status || 'Flagged',
+          statusReason: card.statusReason || null,
+          paymentDueDate: card.paymentDueDate || null,
+          suspendedAt: card.suspendedAt || null,
+        },
+        employee: employee
+          ? {
+              employeeNumber: employee.employeeNumber,
+              displayName: employee.displayName || `${employee.firstName} ${employee.lastName}`,
+              profilePicture: employee.profilePicture,
+            }
+          : null,
+        notification,
+      };
+    }
+
+    if (card.status !== 'Active') {
+      return {
+        success: false,
+        code: 'CARD_DISABLED',
+        message: card.statusReason
+          ? `ID ${card.status}: ${card.statusReason}`
+          : `This ID card is ${card.status.toLowerCase()} and cannot be used.`,
+        card: {
+          documentId: card.documentId,
+          cardNumber: card.cardNumber,
+          rfidUid: card.rfidUid,
+          status: card.status,
+          current_status: card.current_status || 'Cleared',
+          statusReason: card.statusReason || null,
+        },
+      };
+    }
+
     if (!employee) {
       return { success: false, code: 'UNKNOWN_EMPLOYEE', message: 'No employee assigned to this card' };
     }
     if (employee.employmentStatus !== 'Active') {
       return { success: false, code: 'EMPLOYEE_INACTIVE', message: 'Employee is not active' };
     }
+
 
     // 4. Duplicate scan prevention & Find latest event for this session
     const lastEvents = await strapi.documents('api::attendance-event.attendance-event').findMany({
@@ -110,7 +176,27 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       }
     }) as any;
 
-    // 7. Return useful response
+    // 7. Check ID current_status flag (e.g., Payment_Overdue) & trigger SMS/notification reminder
+    const currentStatus = card.current_status || 'Cleared';
+    const isFlagged = currentStatus !== 'Cleared';
+    let notificationResult: any = null;
+
+    if (isFlagged) {
+      try {
+        const notificationService = strapi.service('api::notification-log.notification-log' as any) as any;
+        if (notificationService) {
+          notificationResult = await notificationService.sendPaymentReminder({
+            card,
+            employee,
+            triggerSource: 'Gate_Scan',
+          });
+        }
+      } catch (notifyErr: any) {
+        strapi.log.error(`Failed to trigger payment reminder on scan for ${rfidUid}: ${notifyErr.message}`);
+      }
+    }
+
+    // 8. Return useful response (including current_status warning & reminder details if flagged)
     return {
       success: true,
       event: {
@@ -123,6 +209,29 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
         displayName: employee.displayName || `${employee.firstName} ${employee.lastName}`,
         profilePicture: employee.profilePicture
       },
+      card: {
+        documentId: card.documentId,
+        cardNumber: card.cardNumber,
+        rfidUid: card.rfidUid,
+        status: card.status,
+        current_status: currentStatus,
+        statusReason: card.statusReason || null,
+        paymentDueDate: card.paymentDueDate || null
+      },
+      warning: isFlagged
+        ? {
+            flagged: true,
+            current_status: currentStatus,
+            statusReason: card.statusReason || null,
+            paymentDueDate: card.paymentDueDate || null,
+            reminderTriggered: Boolean(notificationResult?.triggered),
+            deliveryStatus: notificationResult?.deliveryStatus || null,
+            warningMessage:
+              currentStatus === 'Payment_Overdue'
+                ? `Payment Overdue${card.statusReason ? `: ${card.statusReason}` : ''}. Reminder notification triggered.`
+                : `ID Flagged (${currentStatus})${card.statusReason ? `: ${card.statusReason}` : ''}.`
+          }
+        : null,
       message: direction === 'IN' ? `Welcome, ${employee.firstName}!` : `Goodbye, ${employee.firstName}!`
     };
   }

@@ -1,7 +1,9 @@
 export default () => ({
   async pullData(lastSyncTime?: string) {
     const employeeFilters: any = { employmentStatus: 'Active' };
-    const cardFilters: any = { status: 'Active' };
+    const cardFilters: any = {
+      status: { $in: ['Active', 'Suspended', 'Disabled'] }
+    };
     const sessionFilters: any = { status: 'Open' };
 
     if (lastSyncTime) {
@@ -24,10 +26,14 @@ export default () => ({
       filters: sessionFilters
     });
 
+    const kioskSettingService = strapi.service('api::kiosk-setting.kiosk-setting' as any) as any;
+    const kioskSetting = kioskSettingService ? await kioskSettingService.getSettings() : null;
+
     return {
       employees,
       cards,
       sessions,
+      kioskSetting,
       serverTime: new Date().toISOString()
     };
   },

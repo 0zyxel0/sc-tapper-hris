@@ -1,0 +1,69 @@
+{
+  "kind": "singleType",
+  "collectionName": "kiosk_settings",
+  "info": {
+    "singularName": "kiosk-setting",
+    "pluralName": "kiosk-settings",
+    "displayName": "Kiosk Setting",
+    "description": "Global kiosk branding, logo background, and display customization"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "companyName": {
+      "type": "string",
+      "default": "SC Tapper HRIS",
+      "required": true
+    },
+    "welcomeTitle": {
+      "type": "string",
+      "default": "Ready to Scan",
+      "required": true
+    },
+    "welcomeSubtitle": {
+      "type": "string",
+      "default": "Please tap your RFID card on the reader"
+    },
+    "logo": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "backgroundImage": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "useLogoAsBackground": {
+      "type": "boolean",
+      "default": true
+    },
+    "backgroundFit": {
+      "type": "enumeration",
+      "enum": [
+        "watermark",
+        "contain",
+        "cover"
+      ],
+      "default": "watermark"
+    },
+    "backgroundOpacity": {
+      "type": "integer",
+      "min": 0,
+      "max": 100,
+      "default": 15
+    },
+    "primaryColor": {
+      "type": "string",
+      "default": "#0F172A"
+    }
+  }
+}

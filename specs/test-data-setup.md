@@ -94,14 +94,18 @@ The following records are injected into the database:
 | **`TEST-001`** | John Doe | `Active` | Standard valid employee for clock-in/clock-out testing |
 | **`TEST-002`** | Jane Smith | `Active` | Secondary valid employee for debounce / concurrent scan testing |
 | **`TEST-003`** | Bob Inactive | `Inactive` | Edge-case verification for inactive employee scanning |
+| **`TEST-004`** | Mark Overdue | `Active` | Active student with `current_status: Payment_Overdue` (`+639171234567`) |
+| **`TEST-005`** | Sarah Suspended | `Active` | Active student whose ID card is `Suspended` (`+639187654321`) |
 
 ### RFID Cards
-| Card Number | RFID UID | Assigned Employee | Card Status | Purpose / Test Role |
-| :--- | :--- | :--- | :--- | :--- |
-| **`C-TEST-001`** | `111111` | `TEST-001` (John Doe) | `Active` | Normal scan sequence (`IN` / `OUT`) |
-| **`C-TEST-002`** | `222222` | `TEST-002` (Jane Smith) | `Active` | Debounce / duplicate scan rate limit testing |
-| **`C-TEST-003`** | `333333` | `TEST-003` (Bob Inactive) | `Active` | Valid card assigned to inactive employee |
-| **`C-TEST-004`** | `444444` | *None (Unassigned)* | `Active` | Unassigned / lost card scan verification |
+| Card Number | RFID UID | Assigned Employee | Card Status | `current_status` | Purpose / Test Role |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`C-TEST-001`** | `111111` | `TEST-001` (John Doe) | `Active` | `Cleared` | Normal scan sequence (`IN` / `OUT`) |
+| **`C-TEST-002`** | `222222` | `TEST-002` (Jane Smith) | `Active` | `Cleared` | Debounce / duplicate scan rate limit testing |
+| **`C-TEST-003`** | `333333` | `TEST-003` (Bob Inactive) | `Active` | `Cleared` | Valid card assigned to inactive employee |
+| **`C-TEST-004`** | `444444` | *None (Unassigned)* | `Active` | `Cleared` | Unassigned / lost card scan verification |
+| **`C-TEST-005`** | `666666` | `TEST-004` (Mark Overdue) | `Active` | `Payment_Overdue` | Allows gate scan + returns overdue `warning` + triggers SMS reminder |
+| **`C-TEST-006`** | `777777` | `TEST-005` (Sarah Suspended) | `Suspended` | `Payment_Overdue` | Rejects gate scan with `CARD_SUSPENDED` + triggers overdue reminder |
 
 ### Allowed RFID Inventory (Allowlist)
 | RFID UID | Status | Batch Reference | Assigned Employee / Card | Purpose / Test Role |
@@ -111,6 +115,8 @@ The following records are injected into the database:
 | **`333333`** | `Assigned` | `TEST-BATCH-001` | `TEST-003` / `C-TEST-003` | Pre-approved card mapped to inactive employee |
 | **`444444`** | `Assigned` | `TEST-BATCH-001` | `None` / `C-TEST-004` | Pre-approved card marked assigned in allowlist inventory |
 | **`555555`** | `Unassigned` | `TEST-BATCH-001` | *None* | **Tap-to-Assign Enrollment Testing**: Pre-approved allowlist card ready to be enrolled and mapped to an employee |
+| **`666666`** | `Assigned` | `TEST-BATCH-001` | `TEST-004` / `C-TEST-005` | Assigned to student with `Payment_Overdue` flag |
+| **`777777`** | `Suspended` | `TEST-BATCH-001` | `TEST-005` / `C-TEST-006` | Assigned to student with `Suspended` ID card |
 
 ### Attendance Session
 | Session Name | Status | Device ID | Date |

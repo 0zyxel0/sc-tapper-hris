@@ -12,7 +12,7 @@
 - Phase 6 Import Engine logic (Background processing, photo parsing, JSON payload) implemented and exposed.
 - Phase 7 Offline Sync (Push/Pull mechanisms for remote local-SQLite kiosks) implemented and exposed.
 - Test data seeding API and setup documentation (`specs/test-data-setup.md`) established and updated with Allowed RFID inventory & test scenarios.
-- Deployment seeding endpoint (`POST /api/setup/seed`), status endpoint (`GET /api/setup/status`), automated `AUTO_SEED=true` bootstrap, programmatic `Super Admin` API role creation, and deployment documentation (`specs/deployment.md`) implemented and verified.
+- Deployment seeding endpoint (`POST /api/setup/seed`), status endpoint (`GET /api/setup/status`), automated `AUTO_SEED=true` bootstrap, programmatic role creation (`Super Admin`, `Guard`, `Registrar`, `IT`), standardized 4 deployment users (`admin`, `guard`, `registrar`, `it`), and deployment documentation (`specs/deployment.md`) implemented and verified.
 - Kiosk setup guide (`specs/kiosk-setup.md`) documented.
 - JWT configuration resolved with 30-day token lifetime (`legacy-support`) to support gate kiosks.
 - RFID Card Allowlist (Whitelist) Backend & Frontend Specifications completed:
@@ -20,6 +20,15 @@
   - Strict card mapping validation and status synchronization implemented in `employee-card.issueCard` and `disableCard`.
   - Testing seeder updated with allowed card provisioning.
   - Frontend implementation specification authored in `specs/frontend-rfid-allowlist.md`.
+- Kiosk Logo & Background Customization (`api::kiosk-setting.kiosk-setting`) completed:
+  - Global Single Type created with automatic media population, default fallback, Base64/media upload support, and `Super Admin` / `IT` RBAC protection.
+  - Integrated with `/api/setup/seed`, `/api/setup/status`, and `/api/sync/pull`.
+  - Backend and Nuxt frontend specifications authored in `specs/feature-kiosk-customization.md` and `specs/frontend-kiosk-customization.md`.
+- Assigned ID Suspension, Disablement, `current_status` Flagging & Overdue Payment SMS Reminders completed:
+  - Added `Suspended` card status and `current_status` (`Cleared`, `Payment_Overdue`, `Payment_Pending`, `Flagged`, `Under_Review`) on `employee-card`, synced with `allowed-rfid`.
+  - Created `notification-log` content type and SMS reminder service with 24-hour cooldown and live/simulated SMS provider support.
+  - Updated `POST /api/attendance/scan` to allow gate entry with a `warning` payload and SMS reminder when `current_status` is flagged (`Payment_Overdue`), while blocking `Suspended` (`CARD_SUSPENDED`) and `Disabled` (`CARD_DISABLED`) cards.
+  - Authored `specs/feature-id-status-and-payment-reminders.md` and `specs/frontend-id-status-and-payment-reminders.md`.
 
 ## What's Left to Build
 - Set up authentication and authorization policies (so Nuxt can hit the endpoints).

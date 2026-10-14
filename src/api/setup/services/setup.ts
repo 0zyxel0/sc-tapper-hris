@@ -10,16 +10,23 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       where: { type: 'super_admin' },
     });
 
+    const guardRole = await strapi.db.query('plugin::users-permissions.role').findOne({
+      where: { type: 'guard' },
+    });
+
+    const registrarRole = await strapi.db.query('plugin::users-permissions.role').findOne({
+      where: { type: 'registrar' },
+    });
+
+    const itRole = await strapi.db.query('plugin::users-permissions.role').findOne({
+      where: { type: 'it' },
+    });
+
     const checkUsernames = [
       'admin',
-      'kiosk',
       'guard',
-      'gate-01',
-      'gate-02',
-      'gate-03',
-      'gate-1',
-      'gate-2',
-      'gate-3',
+      'registrar',
+      'it',
     ];
 
     const users = await strapi.db.query('plugin::users-permissions.user').findMany({
@@ -38,9 +45,16 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       },
     });
 
+    const kioskSetting = await strapi.documents('api::kiosk-setting.kiosk-setting' as any).findFirst({
+      populate: ['logo', 'backgroundImage'],
+    });
+
     return {
       authenticatedRoleFound: !!authRole,
       superAdminRoleFound: !!superAdminRole,
+      guardRoleFound: !!guardRole,
+      registrarRoleFound: !!registrarRole,
+      itRoleFound: !!itRole,
       seededUsersCount: users.length,
       users: users.map((u: any) => ({
         username: u.username,
@@ -49,46 +63,57 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       })),
       activeGateSessionsCount: sessions.length,
       gateSessions: sessions.map((s: any) => ({ name: s.name, deviceId: s.deviceId, status: s.status })),
+      kioskSettingInitialized: !!kioskSetting,
     };
   },
 
   async seed(options: { defaultPassword?: string } = {}) {
     const password = options.defaultPassword || process.env.SEED_DEFAULT_PASSWORD || 'Password123!';
 
-    // 1. Locate Authenticated Role & Super Admin Role
-    const authRole = await strapi.db.query('plugin::users-permissions.role').findOne({
-      where: { type: 'authenticated' },
-    });
+    // 1. Ensure required roles exist
+    const rolesToEnsure = [
+      {
+        name: 'Super Admin',
+        description: 'Super Administrator with full API access',
+        type: 'super_admin',
+      },
+      {
+        name: 'Guard',
+        description: 'Security guard and kiosk operator role',
+        type: 'guard',
+      },
+      {
+        name: 'Registrar',
+        description: 'Registrar with full API access for employee and card registration',
+        type: 'registrar',
+      },
+      {
+        name: 'IT',
+        description: 'IT personnel and technical operator role',
+        type: 'it',
+      },
+    ];
 
-    if (!authRole) {
-      throw new Error('Authenticated role not found in database.');
-    }
-
-    let superAdminRole = await strapi.db.query('plugin::users-permissions.role').findOne({
-      where: { type: 'super_admin' },
-    });
-
-    if (!superAdminRole) {
-      superAdminRole = await strapi.db.query('plugin::users-permissions.role').create({
-        data: {
-          name: 'Super Admin',
-          description: 'Super Administrator with full API access',
-          type: 'super_admin',
-        },
+    const rolesMap: Record<string, any> = {};
+    for (const r of rolesToEnsure) {
+      let role = await strapi.db.query('plugin::users-permissions.role').findOne({
+        where: { type: r.type },
       });
+
+      if (!role) {
+        role = await strapi.db.query('plugin::users-permissions.role').create({
+          data: r,
+        });
+      }
+      rolesMap[r.type] = role;
     }
 
-    // 2. Define standard deployment users (including aliases for gate devices)
+    // 2. Define standard deployment users (4 essential deployment accounts)
     const usersToSeed = [
-      { username: 'admin', email: 'admin@sc-tapper.local', password, roleId: superAdminRole.id, roleName: 'Super Admin' },
-      { username: 'kiosk', email: 'kiosk@sc-tapper.local', password, roleId: authRole.id, roleName: 'Authenticated' },
-      { username: 'guard', email: 'guard@sc-tapper.local', password, roleId: authRole.id, roleName: 'Authenticated' },
-      { username: 'gate-01', email: 'gate01@sc-tapper.local', password, roleId: authRole.id, roleName: 'Authenticated' },
-      { username: 'gate-02', email: 'gate02@sc-tapper.local', password, roleId: authRole.id, roleName: 'Authenticated' },
-      { username: 'gate-03', email: 'gate03@sc-tapper.local', password, roleId: authRole.id, roleName: 'Authenticated' },
-      { username: 'gate-1', email: 'gate1@sc-tapper.local', password, roleId: authRole.id, roleName: 'Authenticated' },
-      { username: 'gate-2', email: 'gate2@sc-tapper.local', password, roleId: authRole.id, roleName: 'Authenticated' },
-      { username: 'gate-3', email: 'gate3@sc-tapper.local', password, roleId: authRole.id, roleName: 'Authenticated' },
+      { username: 'admin', email: 'admin@sc-tapper.local', password, roleId: rolesMap['super_admin'].id, roleName: 'Super Admin' },
+      { username: 'guard', email: 'guard@sc-tapper.local', password, roleId: rolesMap['guard'].id, roleName: 'Guard' },
+      { username: 'registrar', email: 'registrar@sc-tapper.local', password, roleId: rolesMap['registrar'].id, roleName: 'Registrar' },
+      { username: 'it', email: 'it@sc-tapper.local', password, roleId: rolesMap['it'].id, roleName: 'IT' },
     ];
 
     const seededUsers: Array<{ username: string; email: string; role: string }> = [];
@@ -196,6 +221,12 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       }
     }
 
+    // 4. Ensure default Kiosk Setting exists
+    const kioskSettingService = strapi.service('api::kiosk-setting.kiosk-setting' as any) as any;
+    const kioskSettingResult = kioskSettingService
+      ? await kioskSettingService.ensureDefaultSettings()
+      : null;
+
     return {
       message: 'Deployment seeding completed successfully.',
       users: {
@@ -206,6 +237,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
         created: seededGates,
         existing: existingGates,
       },
+      kioskSetting: kioskSettingResult,
     };
   },
 });

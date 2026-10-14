@@ -19,27 +19,50 @@ export default {
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
     // Auto-configure roles and permissions for custom HRIS and attendance endpoints
     try {
-      // 1. Ensure Super Admin role exists in users-permissions
-      let superAdminRole = await strapi.db.query('plugin::users-permissions.role').findOne({
-        where: { type: 'super_admin' },
-      });
+      // 1. Ensure custom API roles exist in users-permissions
+      const rolesToEnsure = [
+        {
+          name: 'Super Admin',
+          description: 'Super Administrator with full API access',
+          type: 'super_admin',
+        },
+        {
+          name: 'Guard',
+          description: 'Security guard and kiosk operator role',
+          type: 'guard',
+        },
+        {
+          name: 'Registrar',
+          description: 'Registrar with full API access for employee and card registration',
+          type: 'registrar',
+        },
+        {
+          name: 'IT',
+          description: 'IT personnel and technical operator role',
+          type: 'it',
+        },
+      ];
 
-      if (!superAdminRole) {
-        superAdminRole = await strapi.db.query('plugin::users-permissions.role').create({
-          data: {
-            name: 'Super Admin',
-            description: 'Super Administrator with full API access',
-            type: 'super_admin',
-          },
+      const customRoles: any[] = [];
+      for (const r of rolesToEnsure) {
+        let role = await strapi.db.query('plugin::users-permissions.role').findOne({
+          where: { type: r.type },
         });
-        strapi.log.info('Super Admin role created in plugin::users-permissions.');
+
+        if (!role) {
+          role = await strapi.db.query('plugin::users-permissions.role').create({
+            data: r,
+          });
+          strapi.log.info(`${r.name} role created in plugin::users-permissions.`);
+        }
+        customRoles.push(role);
       }
 
       const authRole = await strapi.db.query('plugin::users-permissions.role').findOne({
         where: { type: 'authenticated' },
       });
 
-      const rolesToConfigure = [authRole, superAdminRole].filter(Boolean);
+      const rolesToConfigure = [authRole, ...customRoles].filter(Boolean);
 
       if (rolesToConfigure.length > 0) {
         const permissionsToEnable = [
@@ -48,7 +71,16 @@ export default {
           'api::attendance.attendance.currentSession',
           'api::attendance.attendance.scan',
           'api::employee-card.employee-card.disable',
+          'api::employee-card.employee-card.suspend',
+          'api::employee-card.employee-card.activate',
+          'api::employee-card.employee-card.updateCurrentStatus',
+          'api::employee-card.employee-card.sendReminder',
+          'api::employee-card.employee-card.bulkFlag',
           'api::employee-card.employee-card.issue',
+          'api::notification-log.notification-log.find',
+          'api::notification-log.notification-log.findOne',
+          'api::notification-log.notification-log.create',
+          'api::notification-log.notification-log.sendOverdueReminders',
           'api::employee.employee.find',
           'api::employee.employee.findOne',
           'api::employee.employee.create',
@@ -84,7 +116,10 @@ export default {
           'api::allowed-rfid.allowed-rfid.create',
           'api::allowed-rfid.allowed-rfid.update',
           'api::allowed-rfid.allowed-rfid.delete',
-          'api::allowed-rfid.allowed-rfid.bulkUpload'
+          'api::allowed-rfid.allowed-rfid.bulkUpload',
+          'api::kiosk-setting.kiosk-setting.find',
+          'plugin::upload.content-api.find',
+          'plugin::upload.content-api.findOne'
         ];
 
         for (const role of rolesToConfigure) {
@@ -103,7 +138,50 @@ export default {
             }
           }
         }
-        strapi.log.info('API permissions automatically granted to Authenticated and Super Admin roles on start.');
+
+        // Grant kiosk customization update & media upload permissions to Super Admin and IT roles
+        const adminRoles = customRoles.filter((r) => r && (r.type === 'super_admin' || r.type === 'it'));
+        const adminPermissions = [
+          'api::kiosk-setting.kiosk-setting.update',
+          'plugin::upload.content-api.upload',
+          'plugin::upload.content-api.destroy',
+        ];
+
+        for (const role of adminRoles) {
+          for (const action of adminPermissions) {
+            const exists = await strapi.db.query('plugin::users-permissions.permission').findOne({
+              where: { role: role.id, action },
+            });
+
+            if (!exists) {
+              await strapi.db.query('plugin::users-permissions.permission').create({
+                data: {
+                  role: role.id,
+                  action,
+                },
+              });
+            }
+          }
+        }
+
+        // Allow Public role to read kiosk-setting so login/idle screens can render company logo & background
+        const publicRole = await strapi.db.query('plugin::users-permissions.role').findOne({
+          where: { type: 'public' },
+        });
+        if (publicRole) {
+          const publicReadExists = await strapi.db.query('plugin::users-permissions.permission').findOne({
+            where: { role: publicRole.id, action: 'api::kiosk-setting.kiosk-setting.find' },
+          });
+          if (!publicReadExists) {
+            await strapi.db.query('plugin::users-permissions.permission').create({
+              data: {
+                role: publicRole.id,
+                action: 'api::kiosk-setting.kiosk-setting.find',
+              },
+            });
+          }
+        }
+        strapi.log.info('API permissions automatically granted to Authenticated, Super Admin, Guard, Registrar, and IT roles on start.');
 
         // Optional automated deployment seeding on startup via AUTO_SEED=true
         if (process.env.AUTO_SEED === 'true') {

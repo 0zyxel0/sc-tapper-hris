@@ -20,7 +20,7 @@ When deploying this backend to a new machine (cloud server, on-premises server, 
 The following components and endpoints have been implemented and verified:
 
 ### A. Automated Role & Permission Bootstrapping (`src/index.ts`)
-Strapi's lifecycle bootstrap hook (`src/index.ts`) automatically executes on every application startup. It dynamically ensures that a dedicated **`Super Admin`** API role (`type: 'super_admin'`) is created alongside the default **`Authenticated`** role, and grants full API permissions to both roles for all required operations:
+Strapi's lifecycle bootstrap hook (`src/index.ts`) automatically executes on every application startup. It dynamically ensures that dedicated API roles (**`Super Admin`**, **`Guard`**, **`Registrar`**, and **`IT`**) are created alongside the default **`Authenticated`** role, and grants full API permissions to all roles for all required operations:
 
 * **Attendance Sessions:**
   * `api::attendance.attendance.openSession`
@@ -49,6 +49,10 @@ Strapi's lifecycle bootstrap hook (`src/index.ts`) automatically executes on eve
 * **Edge Kiosk Synchronization:**
   * `api::sync.sync.pull`
   * `api::sync.sync.push`
+* **Kiosk Branding & Customization:**
+  * `api::kiosk-setting.kiosk-setting.find` (Granted to `Public` and all authenticated roles)
+  * `api::kiosk-setting.kiosk-setting.update` (Granted to `Super Admin` and `IT` roles)
+  * `plugin::upload.content-api.upload` / `destroy` (Granted to `Super Admin` and `IT` roles)
 
 > **Result:** No manual permission assignment in the Strapi Admin UI is necessary when spinning up a new instance.
 
@@ -66,11 +70,9 @@ A dedicated setup API is implemented with two endpoints:
 | Username | Role | Default Email | Primary Purpose |
 | :--- | :--- | :--- | :--- |
 | **`admin`** | `Super Admin` | `admin@sc-tapper.local` | HR & Security Administrator API account |
-| **`kiosk`** | `Authenticated` | `kiosk@sc-tapper.local` | Universal Kiosk terminal scanning account |
-| **`guard`** | `Authenticated` | `guard@sc-tapper.local` | Guardhouse operator account |
-| **`gate-01`** / **`gate-1`** | `Authenticated` | `gate01@sc-tapper.local` | Dedicated device login for Gate 1 (Main Entrance) |
-| **`gate-02`** / **`gate-2`** | `Authenticated` | `gate02@sc-tapper.local` | Dedicated device login for Gate 2 (Back Entrance) |
-| **`gate-03`** / **`gate-3`** | `Authenticated` | `gate03@sc-tapper.local` | Dedicated device login for Gate 3 (Warehouse) |
+| **`guard`** | `Guard` | `guard@sc-tapper.local` | Security guard & kiosk scanning operator account |
+| **`registrar`** | `Registrar` | `registrar@sc-tapper.local` | Employee registration & card enrollment operator account |
+| **`it`** | `IT` | `it@sc-tapper.local` | IT personnel and technical administration account |
 
 #### Seeded Physical Gates Provisioned:
 | Device ID | Gate Name | Location | Initial Status |

@@ -34,19 +34,17 @@ curl http://localhost:1337/api/setup/status
 
 ## 2. Default Kiosk Credentials
 
-The setup process creates dedicated API users for your kiosks and guards. Use these credentials on the Nuxt frontend `/login` screen.
+The setup process creates dedicated API users for deployments. Use these credentials on the Nuxt frontend `/login` screen.
 
 > **Default Password for all seeded accounts:** `Password123!`  
 > *(Note: This can be overridden by setting the `SEED_DEFAULT_PASSWORD` environment variable on the backend before running the seeder or passing a `"password"` property in the POST body).*
 
-| Physical Location | Nuxt `DEVICE_ID` | Login Email | Login Username | Default Password |
-| :--- | :--- | :--- | :--- | :--- |
-| **Main Entrance / Guardhouse** | `GATE-01` | `gate01@sc-tapper.local` | `gate-01` | `Password123!` |
-| **Back Entrance** | `GATE-02` | `gate02@sc-tapper.local` | `gate-02` | `Password123!` |
-| **Warehouse Gate** | `GATE-03` | `gate03@sc-tapper.local` | `gate-03` | `Password123!` |
-| **General Guard** | N/A | `guard@sc-tapper.local` | `guard` | `Password123!` |
-| **Generic Kiosk** | N/A | `kiosk@sc-tapper.local` | `kiosk` | `Password123!` |
-| **Admin API User** | N/A | `admin@sc-tapper.local` | `admin` | `Password123!` |
+| Account / Role | Nuxt Terminal `DEVICE_ID` | Login Email | Login Username | Default Password | Role |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Guard / Kiosk Operator** | Configured per terminal (`GATE-01`, `GATE-02`, etc.) | `guard@sc-tapper.local` | `guard` | `Password123!` | `Guard` |
+| **Registrar User** | N/A | `registrar@sc-tapper.local` | `registrar` | `Password123!` | `Registrar` |
+| **IT Specialist** | N/A | `it@sc-tapper.local` | `it` | `Password123!` | `IT` |
+| **Admin API User** | N/A | `admin@sc-tapper.local` | `admin` | `Password123!` | `Super Admin` |
 
 *(Note: The Nuxt frontend login form can accept either the **Email** or the **Username** in the Identifier field.)*
 
@@ -73,8 +71,8 @@ NUXT_PUBLIC_DEVICE_ID="GATE-01"
 
 ### Step 2: Frontend Operator Login
 1. Open the Nuxt frontend application in your browser or fullscreen Chromium kiosk wrapper (e.g., `http://localhost:3000/login`).
-2. Enter the identifier and password corresponding to the gate device:
-   * **Identifier:** `gate-01` (or `gate01@sc-tapper.local`)
+2. Enter the identifier and password for the security guard / kiosk operator:
+   * **Identifier:** `guard` (or `guard@sc-tapper.local`)
    * **Password:** `Password123!`
 3. Click **Sign In**. The frontend authenticates via `POST /api/auth/local` and securely stores the JWT session token.
 

@@ -2,6 +2,20 @@ import { Core } from '@strapi/strapi';
 
 export default ({ strapi }: { strapi: Core.Strapi }) => ({
   async reset() {
+    // 0. Delete test notification logs
+    const testNotifications = await strapi.documents('api::notification-log.notification-log' as any).findMany({
+      filters: {
+        $or: [
+          { employee: { employeeNumber: { $startsWith: 'TEST-' } } },
+          { card: { cardNumber: { $startsWith: 'C-TEST-' } } }
+        ]
+      }
+    }) as any[];
+
+    for (const notif of testNotifications) {
+      await strapi.documents('api::notification-log.notification-log' as any).delete({ documentId: notif.documentId });
+    }
+
     // 1. Delete events for test employees (and test sessions)
     const testEvents = await strapi.documents('api::attendance-event.attendance-event').findMany({
       filters: {
@@ -48,7 +62,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       filters: {
         $or: [
           { batchReference: { $startsWith: 'TEST-' } },
-          { rfidUid: { $in: ['111111', '222222', '333333', '444444', '555555'] } }
+          { rfidUid: { $in: ['111111', '222222', '333333', '444444', '555555', '666666', '777777'] } }
         ]
       }
     }) as any[];
@@ -71,6 +85,8 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       { rfidUid: '333333', status: 'Assigned', batchReference: 'TEST-BATCH-001' },
       { rfidUid: '444444', status: 'Assigned', batchReference: 'TEST-BATCH-001' },
       { rfidUid: '555555', status: 'Unassigned', batchReference: 'TEST-BATCH-001', notes: 'Pre-allowed test card ready to be mapped' },
+      { rfidUid: '666666', status: 'Assigned', batchReference: 'TEST-BATCH-001', notes: 'Assigned to student with Payment_Overdue flag' },
+      { rfidUid: '777777', status: 'Suspended', batchReference: 'TEST-BATCH-001', notes: 'Assigned to student with Suspended ID' },
     ];
 
     for (const cardData of allowedCards) {
@@ -146,8 +162,60 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
         cardNumber: 'C-TEST-004',
         rfidUid: '444444',
         cardType: 'RFID',
-        status: 'Active' // Active but no employee
+        status: 'Active', // Active but no employee
+        current_status: 'Cleared'
       }
+    });
+
+    // Employee 4: Active Student with Overdue Payment Flag (Allows entry + Warning + SMS reminder)
+    const emp4 = await strapi.documents('api::employee.employee').create({
+      data: {
+        employeeNumber: 'TEST-004',
+        firstName: 'Mark',
+        lastName: 'Overdue',
+        mobileNumber: '+639171234567',
+        employmentStatus: 'Active',
+      }
+    }) as any;
+
+    const card5 = await strapi.documents('api::employee-card.employee-card').create({
+      data: {
+        cardNumber: 'C-TEST-005',
+        rfidUid: '666666',
+        employee: emp4.documentId,
+        cardType: 'RFID',
+        status: 'Active',
+        current_status: 'Payment_Overdue',
+        statusReason: 'Unpaid Tuition - October Installment',
+        paymentDueDate: '2026-10-10',
+        flaggedAt: new Date().toISOString(),
+      } as any
+    });
+
+    // Employee 5: Active Student with Suspended ID Card (Blocks entry + CARD_SUSPENDED)
+    const emp5 = await strapi.documents('api::employee.employee').create({
+      data: {
+        employeeNumber: 'TEST-005',
+        firstName: 'Sarah',
+        lastName: 'Suspended',
+        mobileNumber: '+639187654321',
+        employmentStatus: 'Active',
+      }
+    }) as any;
+
+    const card6 = await strapi.documents('api::employee-card.employee-card').create({
+      data: {
+        cardNumber: 'C-TEST-006',
+        rfidUid: '777777',
+        employee: emp5.documentId,
+        cardType: 'RFID',
+        status: 'Suspended',
+        current_status: 'Payment_Overdue',
+        statusReason: 'Account Suspended - Delinquent Balance',
+        paymentDueDate: '2026-09-30',
+        flaggedAt: new Date().toISOString(),
+        suspendedAt: new Date().toISOString(),
+      } as any
     });
 
     // Create an open session
@@ -161,8 +229,8 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     });
 
     return {
-      employees: [emp1, emp2, emp3],
-      cards: [card1, card2, card3, card4],
+      employees: [emp1, emp2, emp3, emp4, emp5],
+      cards: [card1, card2, card3, card4, card5, card6],
       allowedCards,
       session
     };

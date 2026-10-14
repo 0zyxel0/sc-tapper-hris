@@ -37,12 +37,39 @@
       "type": "enumeration",
       "enum": [
         "Active",
+        "Suspended",
         "Lost",
         "Disabled",
         "Expired",
         "Replaced"
       ],
       "default": "Active"
+    },
+    "current_status": {
+      "type": "enumeration",
+      "enum": [
+        "Cleared",
+        "Payment_Overdue",
+        "Payment_Pending",
+        "Flagged",
+        "Under_Review"
+      ],
+      "default": "Cleared"
+    },
+    "statusReason": {
+      "type": "text"
+    },
+    "paymentDueDate": {
+      "type": "date"
+    },
+    "flaggedAt": {
+      "type": "datetime"
+    },
+    "suspendedAt": {
+      "type": "datetime"
+    },
+    "lastReminderSentAt": {
+      "type": "datetime"
     },
     "issuedAt": {
       "type": "datetime"

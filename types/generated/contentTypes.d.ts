@@ -471,7 +471,7 @@ export interface ApiAllowedRfidAllowedRfid extends Struct.CollectionTypeSchema {
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
     status: Schema.Attribute.Enumeration<
-      ['Unassigned', 'Assigned', 'Disabled']
+      ['Unassigned', 'Assigned', 'Suspended', 'Disabled']
     > &
       Schema.Attribute.DefaultTo<'Unassigned'>;
     updatedAt: Schema.Attribute.DateTime;
@@ -606,13 +606,25 @@ export interface ApiEmployeeCardEmployeeCard
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    current_status: Schema.Attribute.Enumeration<
+      [
+        'Cleared',
+        'Payment_Overdue',
+        'Payment_Pending',
+        'Flagged',
+        'Under_Review',
+      ]
+    > &
+      Schema.Attribute.DefaultTo<'Cleared'>;
     employee: Schema.Attribute.Relation<'manyToOne', 'api::employee.employee'>;
     expiresAt: Schema.Attribute.DateTime;
+    flaggedAt: Schema.Attribute.DateTime;
     issuedAt: Schema.Attribute.DateTime;
     issuedBy: Schema.Attribute.Relation<
       'oneToOne',
       'plugin::users-permissions.user'
     >;
+    lastReminderSentAt: Schema.Attribute.DateTime;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -620,12 +632,15 @@ export interface ApiEmployeeCardEmployeeCard
     > &
       Schema.Attribute.Private;
     notes: Schema.Attribute.Text;
+    paymentDueDate: Schema.Attribute.Date;
     publishedAt: Schema.Attribute.DateTime;
     rfidUid: Schema.Attribute.String;
     status: Schema.Attribute.Enumeration<
-      ['Active', 'Lost', 'Disabled', 'Expired', 'Replaced']
+      ['Active', 'Suspended', 'Lost', 'Disabled', 'Expired', 'Replaced']
     > &
       Schema.Attribute.DefaultTo<'Active'>;
+    statusReason: Schema.Attribute.Text;
+    suspendedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -727,6 +742,116 @@ export interface ApiImportJobImportJob extends Struct.CollectionTypeSchema {
       Schema.Attribute.DefaultTo<'Pending'>;
     successfulRecords: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     totalRecords: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiKioskSettingKioskSetting extends Struct.SingleTypeSchema {
+  collectionName: 'kiosk_settings';
+  info: {
+    description: 'Global kiosk branding, logo background, and display customization';
+    displayName: 'Kiosk Setting';
+    pluralName: 'kiosk-settings';
+    singularName: 'kiosk-setting';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    backgroundFit: Schema.Attribute.Enumeration<
+      ['watermark', 'contain', 'cover']
+    > &
+      Schema.Attribute.DefaultTo<'watermark'>;
+    backgroundImage: Schema.Attribute.Media<'images'>;
+    backgroundOpacity: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 100;
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<15>;
+    companyName: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'SC Tapper HRIS'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::kiosk-setting.kiosk-setting'
+    > &
+      Schema.Attribute.Private;
+    logo: Schema.Attribute.Media<'images'>;
+    primaryColor: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'#0F172A'>;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    useLogoAsBackground: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<true>;
+    welcomeSubtitle: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Please tap your RFID card on the reader'>;
+    welcomeTitle: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'Ready to Scan'>;
+  };
+}
+
+export interface ApiNotificationLogNotificationLog
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'notification_logs';
+  info: {
+    description: 'Audit log for SMS and notification reminders triggered by ID status flags or gate scans';
+    displayName: 'Notification Log';
+    pluralName: 'notification-logs';
+    singularName: 'notification-log';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    card: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::employee-card.employee-card'
+    >;
+    channel: Schema.Attribute.Enumeration<['SMS', 'In_App', 'Email']> &
+      Schema.Attribute.DefaultTo<'SMS'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    deliveryStatus: Schema.Attribute.Enumeration<
+      [
+        'Sent',
+        'Simulated',
+        'Failed',
+        'Skipped_Cooldown',
+        'Skipped_No_Recipient',
+      ]
+    > &
+      Schema.Attribute.DefaultTo<'Simulated'>;
+    employee: Schema.Attribute.Relation<'manyToOne', 'api::employee.employee'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::notification-log.notification-log'
+    > &
+      Schema.Attribute.Private;
+    message: Schema.Attribute.Text & Schema.Attribute.Required;
+    providerResponse: Schema.Attribute.JSON;
+    publishedAt: Schema.Attribute.DateTime;
+    recipientNumber: Schema.Attribute.String;
+    sentAt: Schema.Attribute.DateTime;
+    statusFlag: Schema.Attribute.String;
+    triggerSource: Schema.Attribute.Enumeration<
+      ['Gate_Scan', 'Admin_Flag', 'Manual_Reminder', 'Batch_Reminder']
+    > &
+      Schema.Attribute.DefaultTo<'Gate_Scan'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1250,6 +1375,8 @@ declare module '@strapi/strapi' {
       'api::employee-card.employee-card': ApiEmployeeCardEmployeeCard;
       'api::employee.employee': ApiEmployeeEmployee;
       'api::import-job.import-job': ApiImportJobImportJob;
+      'api::kiosk-setting.kiosk-setting': ApiKioskSettingKioskSetting;
+      'api::notification-log.notification-log': ApiNotificationLogNotificationLog;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

@@ -1,0 +1,72 @@
+{
+  "kind": "collectionType",
+  "collectionName": "notification_logs",
+  "info": {
+    "singularName": "notification-log",
+    "pluralName": "notification-logs",
+    "displayName": "Notification Log",
+    "description": "Audit log for SMS and notification reminders triggered by ID status flags or gate scans"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "employee": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::employee.employee"
+    },
+    "card": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::employee-card.employee-card"
+    },
+    "channel": {
+      "type": "enumeration",
+      "enum": [
+        "SMS",
+        "In_App",
+        "Email"
+      ],
+      "default": "SMS"
+    },
+    "recipientNumber": {
+      "type": "string"
+    },
+    "triggerSource": {
+      "type": "enumeration",
+      "enum": [
+        "Gate_Scan",
+        "Admin_Flag",
+        "Manual_Reminder",
+        "Batch_Reminder"
+      ],
+      "default": "Gate_Scan"
+    },
+    "statusFlag": {
+      "type": "string"
+    },
+    "message": {
+      "type": "text",
+      "required": true
+    },
+    "deliveryStatus": {
+      "type": "enumeration",
+      "enum": [
+        "Sent",
+        "Simulated",
+        "Failed",
+        "Skipped_Cooldown",
+        "Skipped_No_Recipient"
+      ],
+      "default": "Simulated"
+    },
+    "providerResponse": {
+      "type": "json"
+    },
+    "sentAt": {
+      "type": "datetime"
+    }
+  }
+}
