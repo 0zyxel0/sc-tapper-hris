@@ -39,6 +39,23 @@ export default {
           'api::employee-card.employee-card.create',
           'api::employee-card.employee-card.update',
           'api::employee-card.employee-card.delete',
+          'api::employee.import.importEmployees',
+          'api::attendance-session.attendance-session.find',
+          'api::attendance-session.attendance-session.findOne',
+          'api::attendance-session.attendance-session.create',
+          'api::attendance-session.attendance-session.update',
+          'api::attendance-session.attendance-session.delete',
+          'api::attendance-event.attendance-event.find',
+          'api::attendance-event.attendance-event.findOne',
+          'api::attendance-event.attendance-event.create',
+          'api::attendance-event.attendance-event.update',
+          'api::attendance-event.attendance-event.delete',
+          'api::import-job.import-job.find',
+          'api::import-job.import-job.findOne',
+          'api::import-job.import-job.create',
+          'api::import-job.import-job.update',
+          'api::sync.sync.pull',
+          'api::sync.sync.push',
           'api::reports.reports.daily',
           'api::reports.reports.monthly',
           'api::reports.reports.employee'
@@ -58,10 +75,20 @@ export default {
             });
           }
         }
-        strapi.log.info('API permissions automatically granted to the Authenticated role.');
+        strapi.log.info('API permissions automatically granted to the Authenticated role on start.');
+
+        // Optional automated deployment seeding on startup via AUTO_SEED=true
+        if (process.env.AUTO_SEED === 'true') {
+          strapi.log.info('AUTO_SEED=true detected. Seeding deployment data...');
+          const setupService = strapi.service('api::setup.setup') as any;
+          if (setupService) {
+            const seedResult = await setupService.seed();
+            strapi.log.info(`Deployment data seeded: ${JSON.stringify(seedResult)}`);
+          }
+        }
       }
     } catch (error) {
-      strapi.log.error('Failed to bootstrap permissions:', error);
+      strapi.log.error('Failed to bootstrap permissions or seed deployment data:', error);
     }
   },
 };

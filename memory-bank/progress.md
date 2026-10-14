@@ -12,6 +12,7 @@
 - Phase 6 Import Engine logic (Background processing, photo parsing, JSON payload) implemented and exposed.
 - Phase 7 Offline Sync (Push/Pull mechanisms for remote local-SQLite kiosks) implemented and exposed.
 - Test data seeding API and setup documentation (`specs/test-data-setup.md`) established.
+- Deployment seeding endpoint (`POST /api/setup/seed`), status endpoint (`GET /api/setup/status`), automated `AUTO_SEED=true` bootstrap, and deployment documentation (`specs/deployment.md`) implemented and verified.
 - JWT configuration resolved with 30-day token lifetime (`legacy-support`) to support gate kiosks.
 
 ## What's Left to Build
