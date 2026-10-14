@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "allowed_rfids",
+  "info": {
+    "singularName": "allowed-rfid",
+    "pluralName": "allowed-rfids",
+    "displayName": "Allowed RFID",
+    "description": "Pre-approved and whitelisted RFID cards"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "rfidUid": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "Unassigned",
+        "Assigned",
+        "Disabled"
+      ],
+      "default": "Unassigned"
+    },
+    "batchReference": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "text"
+    }
+  }
+}

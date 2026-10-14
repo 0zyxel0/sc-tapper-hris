@@ -19,6 +19,8 @@ services:
       DATABASE_USERNAME: ${DATABASE_USERNAME:-postgres}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
       DATABASE_SSL: ${DATABASE_SSL:-false}
+      AUTO_SEED: ${AUTO_SEED:-true}
+      SEED_DEFAULT_PASSWORD: ${SEED_DEFAULT_PASSWORD:-YourSecurePasswordHere!}
     volumes:
       - ./config:/opt/app/config
       - ./src:/opt/app/src

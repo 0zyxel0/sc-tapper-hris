@@ -63,6 +63,14 @@ A successful request returns `200 OK` with JSON containing the seeded entities:
       ...
     ],
     "cards": [ ... ],
+    "allowedCards": [
+      {
+        "rfidUid": "111111",
+        "status": "Assigned",
+        "batchReference": "TEST-BATCH-001"
+      },
+      ...
+    ],
     "session": {
       "documentId": "...",
       "name": "TEST-SESSION-TODAY",
@@ -94,6 +102,15 @@ The following records are injected into the database:
 | **`C-TEST-002`** | `222222` | `TEST-002` (Jane Smith) | `Active` | Debounce / duplicate scan rate limit testing |
 | **`C-TEST-003`** | `333333` | `TEST-003` (Bob Inactive) | `Active` | Valid card assigned to inactive employee |
 | **`C-TEST-004`** | `444444` | *None (Unassigned)* | `Active` | Unassigned / lost card scan verification |
+
+### Allowed RFID Inventory (Allowlist)
+| RFID UID | Status | Batch Reference | Assigned Employee / Card | Purpose / Test Role |
+| :--- | :--- | :--- | :--- | :--- |
+| **`111111`** | `Assigned` | `TEST-BATCH-001` | `TEST-001` / `C-TEST-001` | Pre-approved card already paired to John Doe |
+| **`222222`** | `Assigned` | `TEST-BATCH-001` | `TEST-002` / `C-TEST-002` | Pre-approved card already paired to Jane Smith |
+| **`333333`** | `Assigned` | `TEST-BATCH-001` | `TEST-003` / `C-TEST-003` | Pre-approved card mapped to inactive employee |
+| **`444444`** | `Assigned` | `TEST-BATCH-001` | `None` / `C-TEST-004` | Pre-approved card marked assigned in allowlist inventory |
+| **`555555`** | `Unassigned` | `TEST-BATCH-001` | *None* | **Tap-to-Assign Enrollment Testing**: Pre-approved allowlist card ready to be enrolled and mapped to an employee |
 
 ### Attendance Session
 | Session Name | Status | Device ID | Date |
@@ -129,18 +146,71 @@ The reset service systematically identifies and deletes:
 2. Any `attendance-session` with names starting with `TEST-SESSION`.
 3. Any `employee-card` with card numbers starting with `C-TEST-`.
 4. Any `employee` with employee numbers starting with `TEST-`.
+5. Any `allowed-rfid` record with `batchReference` starting with `TEST-` or matching test UIDs (`111111`, `222222`, `333333`, `444444`, `555555`).
 
 ---
 
 ## 5. Quick Verification Checklist
 
-After running the seed endpoint, you can immediately test the setup using the attendance scan endpoint:
+After running the seed endpoint, you can test attendance and card enrollment workflows against the seeded fixtures:
 
+### A. Attendance Kiosk Scans
 ```bash
-# Test valid scan (Clock-in for John Doe on TEST-DEVICE-01)
+# 1. Test valid scan (Clock-in for John Doe on TEST-DEVICE-01)
 curl -X POST http://localhost:1337/api/attendance/scan \
   -H "Content-Type: application/json" \
   -d '{"rfidUid": "111111", "deviceId": "TEST-DEVICE-01"}'
+
+# 2. Test inactive employee scan (Bob Inactive) -> Expected: 403 Forbidden / INACTIVE_EMPLOYEE
+curl -X POST http://localhost:1337/api/attendance/scan \
+  -H "Content-Type: application/json" \
+  -d '{"rfidUid": "333333", "deviceId": "TEST-DEVICE-01"}'
+
+# 3. Test unassigned card scan -> Expected: 404 Not Found / UNREGISTERED_CARD
+curl -X POST http://localhost:1337/api/attendance/scan \
+  -H "Content-Type: application/json" \
+  -d '{"rfidUid": "444444", "deviceId": "TEST-DEVICE-01"}'
 ```
 
-Refer to `specs/testing-flows.md` for full scenario walk-throughs including debounce thresholds and error handling criteria.
+### B. RFID Allowlist & Card Enrollment Verification
+```bash
+# 1. Fetch allowed cards inventory
+curl -X GET "http://localhost:1337/api/allowed-rfids" \
+  -H "Authorization: Bearer <JWT_TOKEN>"
+
+# 2. Tap-to-Assign Enrollment with Pre-Approved Card (UID: 555555)
+# Replace <EMPLOYEE_DOCUMENT_ID> with John Doe's documentId or another unassigned employee
+curl -X POST http://localhost:1337/api/employee-cards/issue \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "employeeId": "<EMPLOYEE_DOCUMENT_ID>",
+    "rfidUid": "555555",
+    "cardNumber": "C-TEST-005"
+  }'
+# Expected: 200 OK, card created and UID 555555 status transitions to "Assigned"
+
+# 3. Reject Unlisted / Rogue Card Enrollment (e.g. UID: 999999)
+curl -X POST http://localhost:1337/api/employee-cards/issue \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "employeeId": "<EMPLOYEE_DOCUMENT_ID>",
+    "rfidUid": "999999",
+    "cardNumber": "C-TEST-006"
+  }'
+# Expected: 400 Bad Request with message: "UNAUTHORIZED_CARD: This RFID card is not in the system allowlist."
+
+# 4. Reject Already Occupied Card Enrollment (e.g. UID: 111111)
+curl -X POST http://localhost:1337/api/employee-cards/issue \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "employeeId": "<EMPLOYEE_DOCUMENT_ID>",
+    "rfidUid": "111111",
+    "cardNumber": "C-TEST-007"
+  }'
+# Expected: 400 Bad Request with message: "CARD_UNAVAILABLE: This RFID card is already assigned to another employee or disabled."
+```
+
+Refer to `specs/testing-flows.md` and `specs/frontend-rfid-allowlist.md` for full scenario walk-throughs including debounce thresholds, bulk upload specifications, and error handling criteria.

@@ -9,6 +9,16 @@
 - Ready to proceed with frontend implementation.
 
 ## Recent Changes
+- Implemented RFID Card Allowlist (Whitelist) Backend Flows & Specs:
+  - Created `allowed-rfid` content type (`schema.json`, controller, service, routes).
+  - Implemented `POST /api/rfid-allowlist/bulk-upload` for batch inventory uploads.
+  - Added strict validation to `employee-card.issueCard` service to reject unlisted (`UNAUTHORIZED_CARD`) or occupied (`CARD_UNAVAILABLE`) cards.
+  - Added automatic inventory status synchronization on card issue and disable.
+  - Updated testing seeder (`/api/testing/seed`) and teardown (`/api/testing/reset`) to support allowed cards.
+  - Updated `specs/test-data-setup.md` documentation with seeded Allowed RFID inventory (including `555555` unassigned card for Tap-to-Assign enrollment testing) and enrollment test scenarios.
+  - Registered `allowed-rfid` endpoints in `src/index.ts` bootstrap permissions.
+  - Authored comprehensive Frontend Implementation Specification in `specs/frontend-rfid-allowlist.md`.
+- Authored RFID Card Allowlist (Whitelist) Feature Specification in `specs/feature-rfid-allowlist.md`.
 - Created Deployment Seeding API (`/api/setup/seed` & `/api/setup/status`) in `src/api/setup`:
   - Automatically provisions essential operational API users: `admin`, `kiosk`, `guard`, `gate-01`, `gate-02`, `gate-03` (with `gate-1`, `gate-2`, `gate-3` aliases).
   - Uses native Strapi document service to ensure password hashing with bcrypt.
@@ -18,6 +28,7 @@
   - Grants full core and custom endpoint permissions to the `Authenticated` role automatically on server start.
   - Added support for `AUTO_SEED=true` environment variable to enable zero-touch automated seeding on first container startup.
 - Authored comprehensive deployment specification document in `specs/deployment.md`.
+- Authored Kiosk & Frontend Setup Guide in `specs/kiosk-setup.md` detailing operational credentials, environment configuration, and device session mapping.
 - Resolved login and session initialization issues in `sc-tapper-hris` and `sc-tapper-hris-web`:
   - Fixed an issue where the Nuxt server-side Strapi helper (`useServerStrapi` in `server/utils/strapi.ts`) automatically attached the client's existing (expired) `auth_token` cookie as an `Authorization` header when forwarding requests to the Strapi authentication endpoint (`/api/auth/local`). This caused Strapi to reject the login attempt with `401 Missing or invalid credentials` before even checking credentials.
   - Added an exclusion rule for auth routes in `useServerStrapi` (`endpoint.startsWith('/api/auth/')`) so client bearer tokens are never forwarded to authentication endpoints.

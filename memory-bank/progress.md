@@ -11,9 +11,15 @@
 - Phase 5 Reports Engine logic (Daily, Monthly, Employee) implemented and exposed.
 - Phase 6 Import Engine logic (Background processing, photo parsing, JSON payload) implemented and exposed.
 - Phase 7 Offline Sync (Push/Pull mechanisms for remote local-SQLite kiosks) implemented and exposed.
-- Test data seeding API and setup documentation (`specs/test-data-setup.md`) established.
+- Test data seeding API and setup documentation (`specs/test-data-setup.md`) established and updated with Allowed RFID inventory & test scenarios.
 - Deployment seeding endpoint (`POST /api/setup/seed`), status endpoint (`GET /api/setup/status`), automated `AUTO_SEED=true` bootstrap, and deployment documentation (`specs/deployment.md`) implemented and verified.
+- Kiosk setup guide (`specs/kiosk-setup.md`) documented.
 - JWT configuration resolved with 30-day token lifetime (`legacy-support`) to support gate kiosks.
+- RFID Card Allowlist (Whitelist) Backend & Frontend Specifications completed:
+  - `allowed-rfid` content type created with bulk upload endpoint (`POST /api/rfid-allowlist/bulk-upload`).
+  - Strict card mapping validation and status synchronization implemented in `employee-card.issueCard` and `disableCard`.
+  - Testing seeder updated with allowed card provisioning.
+  - Frontend implementation specification authored in `specs/frontend-rfid-allowlist.md`.
 
 ## What's Left to Build
 - Set up authentication and authorization policies (so Nuxt can hit the endpoints).

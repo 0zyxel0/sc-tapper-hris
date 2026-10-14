@@ -7,11 +7,14 @@ export default factories.createCoreController('api::employee-card.employee-card'
       const service = strapi.service('api::employee-card.employee-card') as any;
       const card = await service.disableCard(documentId);
       ctx.send({ success: true, card });
-    } catch (err) {
+    } catch (err: any) {
+      if (err.name === 'ApplicationError' || err.name === 'ValidationError') {
+        return ctx.badRequest(err.message, { details: err.details });
+      }
       ctx.throw(500, err);
     }
   },
-  
+
   async issue(ctx: any) {
     try {
       const { employeeId, ...data } = ctx.request.body;
@@ -21,7 +24,10 @@ export default factories.createCoreController('api::employee-card.employee-card'
       const service = strapi.service('api::employee-card.employee-card') as any;
       const card = await service.issueCard(employeeId, data);
       ctx.send({ success: true, card });
-    } catch (err) {
+    } catch (err: any) {
+      if (err.name === 'ApplicationError' || err.name === 'ValidationError') {
+        return ctx.badRequest(err.message, { details: err.details });
+      }
       ctx.throw(500, err);
     }
   }

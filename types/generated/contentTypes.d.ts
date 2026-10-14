@@ -443,6 +443,43 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiAllowedRfidAllowedRfid extends Struct.CollectionTypeSchema {
+  collectionName: 'allowed_rfids';
+  info: {
+    description: 'Pre-approved and whitelisted RFID cards';
+    displayName: 'Allowed RFID';
+    pluralName: 'allowed-rfids';
+    singularName: 'allowed-rfid';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    batchReference: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::allowed-rfid.allowed-rfid'
+    > &
+      Schema.Attribute.Private;
+    notes: Schema.Attribute.Text;
+    publishedAt: Schema.Attribute.DateTime;
+    rfidUid: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    status: Schema.Attribute.Enumeration<
+      ['Unassigned', 'Assigned', 'Disabled']
+    > &
+      Schema.Attribute.DefaultTo<'Unassigned'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiAttendanceEventAttendanceEvent
   extends Struct.CollectionTypeSchema {
   collectionName: 'attendance_events';
@@ -1207,6 +1244,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::allowed-rfid.allowed-rfid': ApiAllowedRfidAllowedRfid;
       'api::attendance-event.attendance-event': ApiAttendanceEventAttendanceEvent;
       'api::attendance-session.attendance-session': ApiAttendanceSessionAttendanceSession;
       'api::employee-card.employee-card': ApiEmployeeCardEmployeeCard;

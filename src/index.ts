@@ -58,7 +58,13 @@ export default {
           'api::sync.sync.push',
           'api::reports.reports.daily',
           'api::reports.reports.monthly',
-          'api::reports.reports.employee'
+          'api::reports.reports.employee',
+          'api::allowed-rfid.allowed-rfid.find',
+          'api::allowed-rfid.allowed-rfid.findOne',
+          'api::allowed-rfid.allowed-rfid.create',
+          'api::allowed-rfid.allowed-rfid.update',
+          'api::allowed-rfid.allowed-rfid.delete',
+          'api::allowed-rfid.allowed-rfid.bulkUpload'
         ];
 
         for (const action of permissionsToEnable) {
