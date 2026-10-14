@@ -19,8 +19,8 @@ When deploying this backend to a new machine (cloud server, on-premises server, 
 
 The following components and endpoints have been implemented and verified:
 
-### A. Automated Permission Bootstrapping (`src/index.ts`)
-Strapi's lifecycle bootstrap hook (`src/index.ts`) automatically executes on every application startup. It dynamically inspects the database and grants full API permissions to the **`Authenticated`** role for all required operations:
+### A. Automated Role & Permission Bootstrapping (`src/index.ts`)
+Strapi's lifecycle bootstrap hook (`src/index.ts`) automatically executes on every application startup. It dynamically ensures that a dedicated **`Super Admin`** API role (`type: 'super_admin'`) is created alongside the default **`Authenticated`** role, and grants full API permissions to both roles for all required operations:
 
 * **Attendance Sessions:**
   * `api::attendance.attendance.openSession`
@@ -37,6 +37,9 @@ Strapi's lifecycle bootstrap hook (`src/index.ts`) automatically executes on eve
   * `api::employee-card.employee-card.*` (find, findOne, create, update, delete)
   * `api::employee-card.employee-card.disable`
   * `api::employee-card.employee-card.issue`
+* **RFID Allowlist Inventory:**
+  * `api::allowed-rfid.allowed-rfid.*` (find, findOne, create, update, delete)
+  * `api::allowed-rfid.allowed-rfid.bulkUpload`
 * **Import Processing:**
   * `api::import-job.import-job.*` (find, findOne, create, update, delete)
 * **Analytics & Reports:**
@@ -55,14 +58,14 @@ A dedicated setup API is implemented with two endpoints:
 
 #### 1. `POST /api/setup/seed`
 * **Access:** Public (`auth: false`), allowing deployment scripts or administrators to trigger initial setup without prior authentication.
-* **Idempotency:** Safe to run multiple times. If users or gate sessions already exist, it detects them and preserves them without throwing errors or duplicating data.
+* **Idempotency:** Safe to run multiple times. If users or gate sessions already exist, it detects them and preserves them without throwing errors or duplicating data. If `admin` exists under a different role, it is upgraded to `Super Admin`.
 * **Password Encryption:** Utilizes Strapi's user-permissions document service to automatically hash passwords with bcrypt.
 * **Custom Password Option:** Supports custom passwords passed via `{ "password": "MySecretPassword123!" }` in the POST body or via the `SEED_DEFAULT_PASSWORD` environment variable (defaults to `Password123!`).
 
 #### Seeded Accounts Provisioned:
 | Username | Role | Default Email | Primary Purpose |
 | :--- | :--- | :--- | :--- |
-| **`admin`** | `Authenticated` | `admin@sc-tapper.local` | HR & Security Administrator API account |
+| **`admin`** | `Super Admin` | `admin@sc-tapper.local` | HR & Security Administrator API account |
 | **`kiosk`** | `Authenticated` | `kiosk@sc-tapper.local` | Universal Kiosk terminal scanning account |
 | **`guard`** | `Authenticated` | `guard@sc-tapper.local` | Guardhouse operator account |
 | **`gate-01`** / **`gate-1`** | `Authenticated` | `gate01@sc-tapper.local` | Dedicated device login for Gate 1 (Main Entrance) |

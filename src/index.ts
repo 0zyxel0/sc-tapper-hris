@@ -17,11 +17,31 @@ export default {
    * run jobs, or perform some special logic.
    */
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
-    // Auto-configure permissions for custom attendance endpoints
+    // Auto-configure roles and permissions for custom HRIS and attendance endpoints
     try {
-      const authRole = await strapi.db.query('plugin::users-permissions.role').findOne({ where: { type: 'authenticated' } });
-      
-      if (authRole) {
+      // 1. Ensure Super Admin role exists in users-permissions
+      let superAdminRole = await strapi.db.query('plugin::users-permissions.role').findOne({
+        where: { type: 'super_admin' },
+      });
+
+      if (!superAdminRole) {
+        superAdminRole = await strapi.db.query('plugin::users-permissions.role').create({
+          data: {
+            name: 'Super Admin',
+            description: 'Super Administrator with full API access',
+            type: 'super_admin',
+          },
+        });
+        strapi.log.info('Super Admin role created in plugin::users-permissions.');
+      }
+
+      const authRole = await strapi.db.query('plugin::users-permissions.role').findOne({
+        where: { type: 'authenticated' },
+      });
+
+      const rolesToConfigure = [authRole, superAdminRole].filter(Boolean);
+
+      if (rolesToConfigure.length > 0) {
         const permissionsToEnable = [
           'api::attendance.attendance.openSession',
           'api::attendance.attendance.closeSession',
@@ -67,21 +87,23 @@ export default {
           'api::allowed-rfid.allowed-rfid.bulkUpload'
         ];
 
-        for (const action of permissionsToEnable) {
-          const exists = await strapi.db.query('plugin::users-permissions.permission').findOne({
-            where: { role: authRole.id, action }
-          });
-          
-          if (!exists) {
-            await strapi.db.query('plugin::users-permissions.permission').create({
-              data: {
-                role: authRole.id,
-                action
-              }
+        for (const role of rolesToConfigure) {
+          for (const action of permissionsToEnable) {
+            const exists = await strapi.db.query('plugin::users-permissions.permission').findOne({
+              where: { role: role.id, action }
             });
+
+            if (!exists) {
+              await strapi.db.query('plugin::users-permissions.permission').create({
+                data: {
+                  role: role.id,
+                  action
+                }
+              });
+            }
           }
         }
-        strapi.log.info('API permissions automatically granted to the Authenticated role on start.');
+        strapi.log.info('API permissions automatically granted to Authenticated and Super Admin roles on start.');
 
         // Optional automated deployment seeding on startup via AUTO_SEED=true
         if (process.env.AUTO_SEED === 'true') {

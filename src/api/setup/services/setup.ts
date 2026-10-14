@@ -6,6 +6,10 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       where: { type: 'authenticated' },
     });
 
+    const superAdminRole = await strapi.db.query('plugin::users-permissions.role').findOne({
+      where: { type: 'super_admin' },
+    });
+
     const checkUsernames = [
       'admin',
       'kiosk',
@@ -23,6 +27,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
         username: { $in: checkUsernames },
       },
       select: ['id', 'username', 'email', 'confirmed', 'blocked'],
+      populate: ['role'],
     });
 
     const checkDevices = ['GATE-01', 'GATE-02', 'GATE-03'];
@@ -35,8 +40,13 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
 
     return {
       authenticatedRoleFound: !!authRole,
+      superAdminRoleFound: !!superAdminRole,
       seededUsersCount: users.length,
-      users: users.map((u: any) => ({ username: u.username, email: u.email })),
+      users: users.map((u: any) => ({
+        username: u.username,
+        email: u.email,
+        role: u.role?.name || null,
+      })),
       activeGateSessionsCount: sessions.length,
       gateSessions: sessions.map((s: any) => ({ name: s.name, deviceId: s.deviceId, status: s.status })),
     };
@@ -45,7 +55,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
   async seed(options: { defaultPassword?: string } = {}) {
     const password = options.defaultPassword || process.env.SEED_DEFAULT_PASSWORD || 'Password123!';
 
-    // 1. Locate Authenticated Role
+    // 1. Locate Authenticated Role & Super Admin Role
     const authRole = await strapi.db.query('plugin::users-permissions.role').findOne({
       where: { type: 'authenticated' },
     });
@@ -54,21 +64,35 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       throw new Error('Authenticated role not found in database.');
     }
 
+    let superAdminRole = await strapi.db.query('plugin::users-permissions.role').findOne({
+      where: { type: 'super_admin' },
+    });
+
+    if (!superAdminRole) {
+      superAdminRole = await strapi.db.query('plugin::users-permissions.role').create({
+        data: {
+          name: 'Super Admin',
+          description: 'Super Administrator with full API access',
+          type: 'super_admin',
+        },
+      });
+    }
+
     // 2. Define standard deployment users (including aliases for gate devices)
     const usersToSeed = [
-      { username: 'admin', email: 'admin@sc-tapper.local', password },
-      { username: 'kiosk', email: 'kiosk@sc-tapper.local', password },
-      { username: 'guard', email: 'guard@sc-tapper.local', password },
-      { username: 'gate-01', email: 'gate01@sc-tapper.local', password },
-      { username: 'gate-02', email: 'gate02@sc-tapper.local', password },
-      { username: 'gate-03', email: 'gate03@sc-tapper.local', password },
-      { username: 'gate-1', email: 'gate1@sc-tapper.local', password },
-      { username: 'gate-2', email: 'gate2@sc-tapper.local', password },
-      { username: 'gate-3', email: 'gate3@sc-tapper.local', password },
+      { username: 'admin', email: 'admin@sc-tapper.local', password, roleId: superAdminRole.id, roleName: 'Super Admin' },
+      { username: 'kiosk', email: 'kiosk@sc-tapper.local', password, roleId: authRole.id, roleName: 'Authenticated' },
+      { username: 'guard', email: 'guard@sc-tapper.local', password, roleId: authRole.id, roleName: 'Authenticated' },
+      { username: 'gate-01', email: 'gate01@sc-tapper.local', password, roleId: authRole.id, roleName: 'Authenticated' },
+      { username: 'gate-02', email: 'gate02@sc-tapper.local', password, roleId: authRole.id, roleName: 'Authenticated' },
+      { username: 'gate-03', email: 'gate03@sc-tapper.local', password, roleId: authRole.id, roleName: 'Authenticated' },
+      { username: 'gate-1', email: 'gate1@sc-tapper.local', password, roleId: authRole.id, roleName: 'Authenticated' },
+      { username: 'gate-2', email: 'gate2@sc-tapper.local', password, roleId: authRole.id, roleName: 'Authenticated' },
+      { username: 'gate-3', email: 'gate3@sc-tapper.local', password, roleId: authRole.id, roleName: 'Authenticated' },
     ];
 
-    const seededUsers: Array<{ username: string; email: string }> = [];
-    const existingUsers: Array<{ username: string; email: string }> = [];
+    const seededUsers: Array<{ username: string; email: string; role: string }> = [];
+    const existingUsers: Array<{ username: string; email: string; role: string }> = [];
 
     for (const userDef of usersToSeed) {
       const existing = await strapi.db.query('plugin::users-permissions.user').findOne({
@@ -78,6 +102,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
             { email: userDef.email },
           ],
         },
+        populate: ['role'],
       });
 
       if (!existing) {
@@ -87,17 +112,26 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
           password: userDef.password,
           confirmed: true,
           blocked: false,
-          role: authRole.id,
+          role: userDef.roleId,
           provider: 'local',
         });
         seededUsers.push({
           username: created.username,
           email: created.email,
+          role: userDef.roleName,
         });
       } else {
+        // Upgrade role if it differs (e.g. upgrading admin from Authenticated to Super Admin)
+        if (existing.role?.id !== userDef.roleId) {
+          await strapi.db.query('plugin::users-permissions.user').update({
+            where: { id: existing.id },
+            data: { role: userDef.roleId },
+          });
+        }
         existingUsers.push({
           username: existing.username,
           email: existing.email,
+          role: userDef.roleName,
         });
       }
     }

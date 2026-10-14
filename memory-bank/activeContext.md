@@ -9,6 +9,11 @@
 - Ready to proceed with frontend implementation.
 
 ## Recent Changes
+- Programmatic `Super Admin` API Role & Permission Implementation:
+  - Added programmatic creation of `Super Admin` role (`type: 'super_admin'`) during `bootstrap` lifecycle in `src/index.ts`.
+  - Configured `src/index.ts` to grant full API permissions to both `Authenticated` and `Super Admin` roles automatically on server start.
+  - Updated `src/api/setup/services/setup.ts` to provision the `admin` API account under the `Super Admin` role (with automatic role upgrade support if already present under another role).
+  - Updated `specs/deployment.md` documentation reflecting the `Super Admin` role and permissions.
 - Implemented RFID Card Allowlist (Whitelist) Backend Flows & Specs:
   - Created `allowed-rfid` content type (`schema.json`, controller, service, routes).
   - Implemented `POST /api/rfid-allowlist/bulk-upload` for batch inventory uploads.
